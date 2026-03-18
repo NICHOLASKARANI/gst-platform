@@ -250,7 +250,7 @@
             // Add some random satellites
             for (let i = 0; i < 10; i++) {
                 viewer.entities.add({
-                    name: SAT-,
+                    name: `SAT-${1000 + i}`,
                     position: Cesium.Cartesian3.fromDegrees(
                          Math.random() * 360 - 180,
                          Math.random() * 180 - 90,
@@ -261,7 +261,7 @@
                         color: Cesium.Color.fromRandom({ alpha: 0.8 })
                     },
                     label: {
-                        text: SAT-,
+                        text: `SAT-${1000 + i}`,
                         font: '12px sans-serif',
                         fillColor: Cesium.Color.WHITE,
                         style: Cesium.LabelStyle.FILL_AND_OUTLINE,
