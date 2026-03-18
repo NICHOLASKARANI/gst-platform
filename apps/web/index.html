@@ -138,13 +138,12 @@
     // Function to initialize Cesium with error handling
     function initCesium() {
         try {
-            // Check WebGL support
-            if (!Cesium.FeatureDetection.supportsWebGL()) {
-                document.getElementById('loading').innerHTML = 'WebGL not supported. Please update your browser or enable hardware acceleration.';
-                return;
+            // Check WebGL support using the correct method
+            if (!Cesium.ContextLimits.maximumTextureSize) {
+                console.warn('WebGL may not be fully supported');
             }
 
-            // Initialize the Cesium Viewer with fallback options
+            // Initialize the Cesium Viewer
             const viewer = new Cesium.Viewer('cesiumContainer', {
                 terrainProvider: new Cesium.CesiumTerrainProvider({
                     url: Cesium.IonResource.fromAssetId(1)
@@ -168,8 +167,7 @@
                         preserveDrawingBuffer: true,
                         powerPreference: "high-performance"
                     },
-                    allowTextureFilterAnisotropic: false,
-                    requestWebgl2: false // Force WebGL 1 for better compatibility
+                    requestWebgl2: false // Use WebGL 1 for better compatibility
                 }
             });
 
@@ -200,7 +198,7 @@
             
         } catch (error) {
             console.error('Cesium initialization error:', error);
-            document.getElementById('loading').innerHTML = 'Error loading 3D globe. Please check console for details.';
+            document.getElementById('loading').innerHTML = 'Error loading 3D globe: ' + error.message;
         }
     }
 
@@ -288,11 +286,14 @@
             time += 0.01;
             const entities = viewer.entities.values;
             if (entities.length > 0) {
-                const iss = entities.getById('ISS (ZARYA)');
-                if (iss) {
-                    const lon = -122.4194 + Math.sin(time) * 30;
-                    const lat = 37.7749 + Math.cos(time * 1.3) * 20;
-                    iss.position = Cesium.Cartesian3.fromDegrees(lon, lat, 400000);
+                // Find ISS by name
+                for (let i = 0; i < entities.length; i++) {
+                    if (entities[i].name === 'ISS (ZARYA)') {
+                        const lon = -122.4194 + Math.sin(time) * 30;
+                        const lat = 37.7749 + Math.cos(time * 1.3) * 20;
+                        entities[i].position = Cesium.Cartesian3.fromDegrees(lon, lat, 400000);
+                        break;
+                    }
                 }
             }
             document.getElementById('update-time').textContent = new Date().toLocaleTimeString();
