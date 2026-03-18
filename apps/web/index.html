@@ -132,173 +132,173 @@
     <div class="loading" id="loading">Loading Cesium...</div>
 
     <script>
-        // Set your Cesium ion access token (sign up free at cesium.com/ion)
-        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJhMDIxZWQ2Ny1iNDgyLTQ1YjgtOGZjMC1kOWM5N2MyYTRhMTAiLCJpZCI6NDA1NTg5LCJpYXQiOjE3NzM4MzI4NDh9.1LrTA_DFUNGDWWaaSkDen-8GToivYndAuO1j5-N1z20'; // Get from https://cesium.com/ion/
+    // Set your Cesium ion access token
+    Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJhMDIxZWQ2Ny1iNDgyLTQ1YjgtOGZjMC1kOWM5N2MyYTRhMTAiLCJpZCI6NDA1NTg5LCJpYXQiOjE3NzM4MzI4NDh9.1LrTA_DFUNGDWWaaSkDen-8GToivYndAuO1j5-N1z20';
 
-        // Initialize the Cesium Viewer
-        const viewer = new Cesium.Viewer('cesiumContainer', {
-            terrainProvider: new Cesium.CesiumTerrainProvider({
-    url: Cesium.IonResource.fromAssetId(1)
-}),
-            imageryProvider: new Cesium.IonImageryProvider({ assetId: 2 }), // Bing Maps
-            baseLayerPicker: false,
-            geocoder: true,
-            homeButton: true,
-            sceneModePicker: true,
-            navigationHelpButton: true,
-            animation: false,
-            timeline: false,
-            fullscreenButton: true,
-            vrButton: false,
-            skyBox: true,
-            skyAtmosphere: true,
-            targetFrameRate: 60,
-            contextOptions: {
-                webgl: {
-                    alpha: true,
-                    preserveDrawingBuffer: true
-                }
+    // Function to initialize Cesium with error handling
+    function initCesium() {
+        try {
+            // Check WebGL support
+            if (!Cesium.FeatureDetection.supportsWebGL()) {
+                document.getElementById('loading').innerHTML = 'WebGL not supported. Please update your browser or enable hardware acceleration.';
+                return;
             }
-        });
 
-        // Add atmosphere and stars
-        viewer.scene.globe.showGroundAtmosphere = true;
-        viewer.scene.globe.enableLighting = true;
-        viewer.scene.globe.depthTestAgainstTerrain = true;
-
-        // Set initial view to Africa
-        viewer.camera.flyTo({
-            destination: Cesium.Cartesian3.fromDegrees(20, 0, 20000000),
-            orientation: {
-                heading: 0,
-                pitch: -Cesium.Math.PI_OVER_TWO,
-                roll: 0
-            },
-            duration: 2
-        });
-
-        // Add some sample satellites
-        function addSatellites() {
-            // ISS
-            viewer.entities.add({
-                name: 'ISS (ZARYA)',
-                position: Cesium.Cartesian3.fromDegrees(
-                     -122.4194 + Math.random() * 10, 
-                     37.7749 + Math.random() * 10, 
-                     400000
-                ),
-                point: { pixelSize: 10, color: Cesium.Color.RED },
-                label: {
-                    text: 'ISS',
-                    font: '14px sans-serif',
-                    fillColor: Cesium.Color.WHITE,
-                    style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-                    outlineWidth: 2,
-                    verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-                    pixelOffset: new Cesium.Cartesian2(0, -10)
-                },
-                path: {
-                    leadTime: 60,
-                    trailTime: 60,
-                    resolution: 120,
-                    material: new Cesium.PolylineGlowMaterialProperty({
-                        glowPower: 0.1,
-                        color: Cesium.Color.RED
-                    }),
-                    width: 2
-                }
-            });
-
-            // Hubble
-            viewer.entities.add({
-                name: 'Hubble Space Telescope',
-                position: Cesium.Cartesian3.fromDegrees(
-                     -77.5 + Math.random() * 10, 
-                     38.5 + Math.random() * 10, 
-                     540000
-                ),
-                point: { pixelSize: 8, color: Cesium.Color.BLUE },
-                label: {
-                    text: 'HUBBLE',
-                    font: '14px sans-serif',
-                    fillColor: Cesium.Color.WHITE,
-                    style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-                    outlineWidth: 2,
-                    verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-                    pixelOffset: new Cesium.Cartesian2(0, -10)
-                }
-            });
-
-            // Chinese Space Station
-            viewer.entities.add({
-                name: 'Tiangong',
-                position: Cesium.Cartesian3.fromDegrees(
-                     115.0 + Math.random() * 10, 
-                     39.0 + Math.random() * 10, 
-                     380000
-                ),
-                point: { pixelSize: 9, color: Cesium.Color.YELLOW },
-                label: {
-                    text: 'TIANGONG',
-                    font: '14px sans-serif',
-                    fillColor: Cesium.Color.WHITE,
-                    style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-                    outlineWidth: 2,
-                    verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-                    pixelOffset: new Cesium.Cartesian2(0, -10)
-                }
-            });
-
-            // Add some random satellites
-            for (let i = 0; i < 10; i++) {
-                viewer.entities.add({
-                    name: `SAT-${1000 + i}`,
-                    position: Cesium.Cartesian3.fromDegrees(
-                         Math.random() * 360 - 180,
-                         Math.random() * 180 - 90,
-                         500000 + Math.random() * 300000
-                    ),
-                    point: { 
-                        pixelSize: 5, 
-                        color: Cesium.Color.fromRandom({ alpha: 0.8 })
+            // Initialize the Cesium Viewer with fallback options
+            const viewer = new Cesium.Viewer('cesiumContainer', {
+                terrainProvider: new Cesium.CesiumTerrainProvider({
+                    url: Cesium.IonResource.fromAssetId(1)
+                }),
+                imageryProvider: new Cesium.IonImageryProvider({ assetId: 2 }),
+                baseLayerPicker: false,
+                geocoder: true,
+                homeButton: true,
+                sceneModePicker: true,
+                navigationHelpButton: true,
+                animation: false,
+                timeline: false,
+                fullscreenButton: true,
+                vrButton: false,
+                skyBox: true,
+                skyAtmosphere: true,
+                targetFrameRate: 60,
+                contextOptions: {
+                    webgl: {
+                        alpha: true,
+                        preserveDrawingBuffer: true,
+                        powerPreference: "high-performance"
                     },
-                    label: {
-                        text: `SAT-${1000 + i}`,
-                        font: '12px sans-serif',
-                        fillColor: Cesium.Color.WHITE,
-                        style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-                        outlineWidth: 2,
-                        verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-                        pixelOffset: new Cesium.Cartesian2(0, -10),
-                        show: false
-                    }
-                });
-            }
+                    allowTextureFilterAnisotropic: false,
+                    requestWebgl2: false // Force WebGL 1 for better compatibility
+                }
+            });
+
+            // Add atmosphere and stars
+            viewer.scene.globe.showGroundAtmosphere = true;
+            viewer.scene.globe.enableLighting = true;
+            viewer.scene.globe.depthTestAgainstTerrain = true;
+
+            // Set initial view to Africa
+            viewer.camera.flyTo({
+                destination: Cesium.Cartesian3.fromDegrees(20, 0, 20000000),
+                orientation: {
+                    heading: 0,
+                    pitch: -Cesium.Math.PI_OVER_TWO,
+                    roll: 0
+                },
+                duration: 2
+            });
+
+            // Add satellites
+            addSatellites(viewer);
+
+            // Animate satellites
+            animateSatellites(viewer);
+
+            // Hide loading
+            document.getElementById('loading').style.display = 'none';
+            
+        } catch (error) {
+            console.error('Cesium initialization error:', error);
+            document.getElementById('loading').innerHTML = 'Error loading 3D globe. Please check console for details.';
         }
+    }
 
-        addSatellites();
+    // Function to add satellites
+    function addSatellites(viewer) {
+        // ISS
+        viewer.entities.add({
+            name: 'ISS (ZARYA)',
+            position: Cesium.Cartesian3.fromDegrees(-122.4194, 37.7749, 400000),
+            point: { pixelSize: 10, color: Cesium.Color.RED },
+            label: {
+                text: 'ISS',
+                font: '14px sans-serif',
+                fillColor: Cesium.Color.WHITE,
+                style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                outlineWidth: 2,
+                verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+                pixelOffset: new Cesium.Cartesian2(0, -10)
+            }
+        });
 
-        // Add a rotating effect for satellites (simplified animation)
+        // Hubble
+        viewer.entities.add({
+            name: 'Hubble Space Telescope',
+            position: Cesium.Cartesian3.fromDegrees(-77.5, 38.5, 540000),
+            point: { pixelSize: 8, color: Cesium.Color.BLUE },
+            label: {
+                text: 'HUBBLE',
+                font: '14px sans-serif',
+                fillColor: Cesium.Color.WHITE,
+                style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                outlineWidth: 2,
+                verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+                pixelOffset: new Cesium.Cartesian2(0, -10)
+            }
+        });
+
+        // Tiangong
+        viewer.entities.add({
+            name: 'Tiangong',
+            position: Cesium.Cartesian3.fromDegrees(115.0, 39.0, 380000),
+            point: { pixelSize: 9, color: Cesium.Color.YELLOW },
+            label: {
+                text: 'TIANGONG',
+                font: '14px sans-serif',
+                fillColor: Cesium.Color.WHITE,
+                style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                outlineWidth: 2,
+                verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+                pixelOffset: new Cesium.Cartesian2(0, -10)
+            }
+        });
+
+        // Add random satellites
+        for (let i = 0; i < 10; i++) {
+            viewer.entities.add({
+                name: `SAT-${1000 + i}`,
+                position: Cesium.Cartesian3.fromDegrees(
+                    Math.random() * 360 - 180,
+                    Math.random() * 180 - 90,
+                    500000 + Math.random() * 300000
+                ),
+                point: { 
+                    pixelSize: 5, 
+                    color: Cesium.Color.fromRandom({ alpha: 0.8 })
+                },
+                label: {
+                    text: `SAT-${1000 + i}`,
+                    font: '12px sans-serif',
+                    fillColor: Cesium.Color.WHITE,
+                    style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                    outlineWidth: 2,
+                    verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+                    pixelOffset: new Cesium.Cartesian2(0, -10),
+                    show: false
+                }
+            });
+        }
+    }
+
+    // Function to animate satellites
+    function animateSatellites(viewer) {
         let time = 0;
         setInterval(() => {
             time += 0.01;
-            // Update ISS position
             const entities = viewer.entities.values;
             if (entities.length > 0) {
-                const iss = entities[0];
+                const iss = entities.getById('ISS (ZARYA)');
                 if (iss) {
                     const lon = -122.4194 + Math.sin(time) * 30;
                     const lat = 37.7749 + Math.cos(time * 1.3) * 20;
                     iss.position = Cesium.Cartesian3.fromDegrees(lon, lat, 400000);
                 }
             }
-            
-            // Update status
             document.getElementById('update-time').textContent = new Date().toLocaleTimeString();
         }, 1000);
+    }
 
-        // Hide loading
-        document.getElementById('loading').style.display = 'none';
-    </script>
-</body>
-</html>
+    // Initialize when page loads
+    window.addEventListener('load', initCesium);
+</script>
