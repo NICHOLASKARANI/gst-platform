@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>GST Platform - API Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0a0a1a, #1a1a3a);
+            color: white;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 { color: #00d4ff; }
+        .service {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #00d4ff;
+        }
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .running { background: #00ff00; color: black; }
+        .stopped { background: #ff0000; color: white; }
+        button {
+            background: #00d4ff;
+            color: black;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        pre {
+            background: rgba(0,0,0,0.5);
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>?? GST Platform Status</h1>
+        
+        <div class="service">
+            <h2>?? Auth Service (port 8005)</h2>
+            <button onclick="testAuth()">Test Auth Service</button>
+            <pre id="auth-result">Click test to check...</pre>
+        </div>
+        
+        <div class="service">
+            <h2>?? Payment Service (port 8006)</h2>
+            <button onclick="testPayment()">Test Payment Service</button>
+            <pre id="payment-result">Click test to check...</pre>
+        </div>
+        
+        <div class="service">
+            <h2>?? Website Status</h2>
+            <div id="website-status">Checking...</div>
+        </div>
+    </div>
+
+    <script>
+        async function testAuth() {
+            document.getElementById('auth-result').textContent = 'Testing...';
+            try {
+                const response = await fetch('http://localhost:8005/health');
+                const data = await response.json();
+                document.getElementById('auth-result').textContent = 
+                    '? Auth Service Running\n' + JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById('auth-result').textContent = 
+                    '? Auth Service Error: ' + error.message;
+            }
+        }
+
+        async function testPayment() {
+            document.getElementById('payment-result').textContent = 'Testing...';
+            try {
+                const response = await fetch('http://localhost:8006/health');
+                const data = await response.json();
+                document.getElementById('payment-result').textContent = 
+                    '? Payment Service Running\n' + JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById('payment-result').textContent = 
+                    '? Payment Service Error: ' + error.message;
+            }
+        }
+
+        // Check website status
+        fetch('http://localhost:3000')
+            .then(() => {
+                document.getElementById('website-status').innerHTML = 
+                    '<span class="status running">? Website is RUNNING</span>';
+            })
+            .catch(() => {
+                document.getElementById('website-status').innerHTML = 
+                    '<span class="status stopped">? Website is NOT RUNNING</span>';
+            });
+    </script>
+</body>
+</html>

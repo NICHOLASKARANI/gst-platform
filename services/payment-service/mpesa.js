@@ -36,5 +36,5 @@ app.get('/health', (req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log(?? M-Pesa service running on port );
+    console.log('?? M-Pesa service running on port ' + PORT);
 });
