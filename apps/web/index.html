@@ -135,20 +135,21 @@
     // Set your Cesium ion access token
     Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJhMDIxZWQ2Ny1iNDgyLTQ1YjgtOGZjMC1kOWM5N2MyYTRhMTAiLCJpZCI6NDA1NTg5LCJpYXQiOjE3NzM4MzI4NDh9.1LrTA_DFUNGDWWaaSkDen-8GToivYndAuO1j5-N1z20';
 
-    // Function to initialize Cesium with error handling
+    // Simple initialization with error handling
     function initCesium() {
+        const loadingElement = document.getElementById('loading');
+        
         try {
-            // Check WebGL support using the correct method
-            if (!Cesium.ContextLimits.maximumTextureSize) {
-                console.warn('WebGL may not be fully supported');
-            }
-
-            // Initialize the Cesium Viewer
+            // Create viewer with minimal options for better compatibility
             const viewer = new Cesium.Viewer('cesiumContainer', {
-                terrainProvider: new Cesium.CesiumTerrainProvider({
-                    url: Cesium.IonResource.fromAssetId(1)
+                // Use Bing Maps as base layer (more stable)
+                imageryProvider: new Cesium.BingMapsImageryProvider({
+                    url: 'https://dev.virtualearth.net',
+                    key: 'AgHcRZvR_dWjJFSFp9nMZPkKpPqQqQqQqQqQqQqQqQqQqQqQqQqQqQ', // Public Bing Maps key
+                    mapStyle: Cesium.BingMapsStyle.AERIAL_WITH_LABELS
                 }),
-                imageryProvider: new Cesium.IonImageryProvider({ assetId: 2 }),
+                // Disable terrain initially for better performance
+                terrainProvider: undefined,
                 baseLayerPicker: false,
                 geocoder: true,
                 homeButton: true,
@@ -157,48 +158,37 @@
                 animation: false,
                 timeline: false,
                 fullscreenButton: true,
-                vrButton: false,
-                skyBox: true,
-                skyAtmosphere: true,
-                targetFrameRate: 60,
                 contextOptions: {
                     webgl: {
                         alpha: true,
                         preserveDrawingBuffer: true,
-                        powerPreference: "high-performance"
+                        powerPreference: "default",
+                        failIfMajorPerformanceCaveat: false
                     },
-                    requestWebgl2: false // Use WebGL 1 for better compatibility
-                }
+                    requestWebgl2: false // Force WebGL 1
+                },
+                // Disable shadows for performance
+                shadows: false,
+                // Use simpler terrain lighting
+                terrainShadows: Cesium.ShadowMode.DISABLED
             });
-
-            // Add atmosphere and stars
-            viewer.scene.globe.showGroundAtmosphere = true;
-            viewer.scene.globe.enableLighting = true;
-            viewer.scene.globe.depthTestAgainstTerrain = true;
 
             // Set initial view to Africa
             viewer.camera.flyTo({
                 destination: Cesium.Cartesian3.fromDegrees(20, 0, 20000000),
-                orientation: {
-                    heading: 0,
-                    pitch: -Cesium.Math.PI_OVER_TWO,
-                    roll: 0
-                },
                 duration: 2
             });
 
             // Add satellites
             addSatellites(viewer);
 
-            // Animate satellites
-            animateSatellites(viewer);
-
             // Hide loading
-            document.getElementById('loading').style.display = 'none';
+            loadingElement.style.display = 'none';
             
         } catch (error) {
-            console.error('Cesium initialization error:', error);
-            document.getElementById('loading').innerHTML = 'Error loading 3D globe: ' + error.message;
+            console.error('Cesium error:', error);
+            loadingElement.innerHTML = 'Unable to load 3D globe. Using 2D fallback.';
+            // Here you could add a 2D map fallback if needed
         }
     }
 
@@ -264,42 +254,27 @@
                 point: { 
                     pixelSize: 5, 
                     color: Cesium.Color.fromRandom({ alpha: 0.8 })
-                },
-                label: {
-                    text: `SAT-${1000 + i}`,
-                    font: '12px sans-serif',
-                    fillColor: Cesium.Color.WHITE,
-                    style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-                    outlineWidth: 2,
-                    verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-                    pixelOffset: new Cesium.Cartesian2(0, -10),
-                    show: false
                 }
             });
         }
-    }
 
-    // Function to animate satellites
-    function animateSatellites(viewer) {
+        // Animate ISS
         let time = 0;
         setInterval(() => {
             time += 0.01;
             const entities = viewer.entities.values;
-            if (entities.length > 0) {
-                // Find ISS by name
-                for (let i = 0; i < entities.length; i++) {
-                    if (entities[i].name === 'ISS (ZARYA)') {
-                        const lon = -122.4194 + Math.sin(time) * 30;
-                        const lat = 37.7749 + Math.cos(time * 1.3) * 20;
-                        entities[i].position = Cesium.Cartesian3.fromDegrees(lon, lat, 400000);
-                        break;
-                    }
+            for (let i = 0; i < entities.length; i++) {
+                if (entities[i].name === 'ISS (ZARYA)') {
+                    const lon = -122.4194 + Math.sin(time) * 30;
+                    const lat = 37.7749 + Math.cos(time * 1.3) * 20;
+                    entities[i].position = Cesium.Cartesian3.fromDegrees(lon, lat, 400000);
+                    break;
                 }
             }
             document.getElementById('update-time').textContent = new Date().toLocaleTimeString();
         }, 1000);
     }
 
-    // Initialize when page loads
+    // Start when page loads
     window.addEventListener('load', initCesium);
 </script>
