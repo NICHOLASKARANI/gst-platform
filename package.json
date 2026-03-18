@@ -1,19 +1,13 @@
-﻿{
+{
   "name": "gst-platform",
   "version": "1.0.0",
-  "description": "Global Satellite Tracker - Africa's Space Intelligence Platform",
+  "description": "Global Satellite Tracker",
   "main": "index.js",
   "scripts": {
     "dev": "concurrently \"npm run dev:web\" \"npm run dev:api\"",
     "dev:web": "cd apps/web && npm run dev",
-    "dev:api": "cd services/api-gateway && npm run dev",
-    "migrate": "node scripts/migrate.js",
-    "seed": "node scripts/seed.js"
+    "dev:api": "cd services/api-gateway && npm run dev"
   },
-  "keywords": ["satellite", "tracking", "geospatial", "africa", "space"],
   "author": "Nicholas Karani",
-  "license": "MIT",
-  "devDependencies": {
-    "concurrently": "^8.2.0"
-  }
+  "license": "MIT"
 }
