@@ -137,7 +137,9 @@
 
         // Initialize the Cesium Viewer
         const viewer = new Cesium.Viewer('cesiumContainer', {
-            terrainProvider: Cesium.createWorldTerrain(),
+            terrainProvider: new Cesium.CesiumTerrainProvider({
+    url: Cesium.IonResource.fromAssetId(1)
+}),
             imageryProvider: new Cesium.IonImageryProvider({ assetId: 2 }), // Bing Maps
             baseLayerPicker: false,
             geocoder: true,
