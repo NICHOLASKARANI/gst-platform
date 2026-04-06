@@ -1,200 +1,590 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GST - Global Satellite Tracker</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>GST - Global Satellite Tracker | Advanced Space Intelligence</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/cesium@1.107/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/cesium@1.107/Build/Cesium/Cesium.js"></script>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
     <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
             background: #0a0a1a;
         }
+        
+        /* Cesium Container */
         #cesiumContainer {
             width: 100%;
             height: 100vh;
-            position: absolute;
+            position: fixed;
             top: 0;
             left: 0;
-            z-index: 1;
+            z-index: 0;
         }
-        .overlay {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            z-index: 2;
-            background: rgba(10, 10, 26, 0.85);
-            backdrop-filter: blur(10px);
-            border: 1px solid #00d4ff;
-            border-radius: 15px;
+        
+        /* Main Dashboard */
+        .dashboard {
+            position: relative;
+            z-index: 10;
             padding: 20px;
-            color: white;
-            max-width: 350px;
+            pointer-events: none;
         }
-        .overlay h1 {
+        
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            max-width: 1400px;
+            margin: 0 auto 20px auto;
+            pointer-events: auto;
+        }
+        
+        .stat-card {
+            background: rgba(10, 10, 26, 0.85);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 20px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: #00d4ff;
+            box-shadow: 0 10px 30px rgba(0,212,255,0.2);
+        }
+        
+        .stat-icon {
+            font-size: 32px;
             color: #00d4ff;
-            font-size: 24px;
             margin-bottom: 10px;
         }
-        .founder {
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid rgba(255,255,255,0.2);
-            font-style: italic;
-            color: #00d4ff;
-        }
-        .status-panel {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            z-index: 2;
-            background: rgba(10, 10, 26, 0.85);
-            backdrop-filter: blur(10px);
-            border: 1px solid #00d4ff;
-            border-radius: 15px;
-            padding: 15px;
+        
+        .stat-value {
+            font-size: 36px;
+            font-weight: 800;
             color: white;
-            min-width: 250px;
+            line-height: 1;
         }
-        .status-item {
+        
+        .stat-label {
+            font-size: 14px;
+            color: rgba(255,255,255,0.7);
+            margin-top: 5px;
+        }
+        
+        /* Main Content Layout */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+            pointer-events: auto;
+        }
+        
+        /* Left Panel - Space Objects */
+        .panel {
+            background: rgba(10, 10, 26, 0.85);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+        
+        .panel-header {
+            padding: 15px 20px;
+            background: rgba(0, 212, 255, 0.1);
+            border-bottom: 1px solid rgba(0, 212, 255, 0.3);
             display: flex;
             justify-content: space-between;
-            margin: 8px 0;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
         }
-        .status-label { opacity: 0.7; }
-        .status-value { color: #00d4ff; font-weight: bold; }
-        .demo-notice {
-            background: #ffd700;
+        
+        .panel-header h3 {
+            color: #00d4ff;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .live-badge {
+            background: #00ff00;
             color: black;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 10px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+            animation: pulse 2s infinite;
         }
-        .loading {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 3;
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .search-box {
+            padding: 8px 15px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(0,212,255,0.3);
+            border-radius: 25px;
             color: white;
-            background: rgba(0,0,0,0.8);
+            width: 200px;
+        }
+        
+        .search-box::placeholder {
+            color: rgba(255,255,255,0.5);
+        }
+        
+        .objects-list {
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        
+        .object-item {
+            padding: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        
+        .object-item:hover {
+            background: rgba(0,212,255,0.1);
+            transform: translateX(5px);
+        }
+        
+        .object-name {
+            font-weight: 600;
+            color: white;
+        }
+        
+        .object-type {
+            font-size: 11px;
+            color: #00d4ff;
+            margin-top: 4px;
+        }
+        
+        /* Right Panel - Tabs */
+        .tabs-panel {
+            background: rgba(10, 10, 26, 0.85);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+        
+        .tabs {
+            display: flex;
+            background: rgba(0,0,0,0.3);
+        }
+        
+        .tab-btn {
+            flex: 1;
+            padding: 15px;
+            background: transparent;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .tab-btn.active {
+            background: rgba(0,212,255,0.2);
+            color: #00d4ff;
+            border-bottom: 2px solid #00d4ff;
+        }
+        
+        .tab-content {
+            display: none;
             padding: 20px;
+            max-height: 450px;
+            overflow-y: auto;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .disaster-item, .emergency-item {
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.05);
+            border-left: 3px solid #ff4444;
+        }
+        
+        .emergency-item.evacuation {
+            border-left-color: #ff6600;
+            background: rgba(255,102,0,0.15);
+            animation: warning 1s infinite;
+        }
+        
+        @keyframes warning {
+            0%, 100% { background: rgba(255,102,0,0.15); }
+            50% { background: rgba(255,102,0,0.3); }
+        }
+        
+        .disaster-title, .emergency-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .disaster-type, .emergency-threat {
+            font-size: 12px;
+            color: #ff8888;
+        }
+        
+        .evacuation-badge {
+            background: #ff6600;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-top: 8px;
+            display: inline-block;
+        }
+        
+        .launch-item {
+            padding: 10px;
+            margin-bottom: 8px;
+            background: rgba(0,212,255,0.1);
             border-radius: 10px;
         }
+        
+        /* Brand Overlay */
+        .brand {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 20;
+            background: rgba(10, 10, 26, 0.85);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0,212,255,0.3);
+            border-radius: 15px;
+            padding: 12px 20px;
+            pointer-events: none;
+        }
+        
+        .brand h1 {
+            font-size: 18px;
+            color: #00d4ff;
+        }
+        
+        .brand p {
+            font-size: 11px;
+            opacity: 0.7;
+        }
+        
+        /* Responsive */
+        @media (max-width: 968px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .dashboard {
+                padding: 10px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .stat-value {
+                font-size: 28px;
+            }
+            .panel-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .search-box {
+                width: 100%;
+            }
+        }
+        
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.1);
+            border-radius: 3px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #00d4ff;
+            border-radius: 3px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: rgba(255,255,255,0.5);
+        }
     </style>
-    <!-- CesiumJS CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/cesium@1.107/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
-    <!-- CesiumJS JS -->
-    <script src="https://cdn.jsdelivr.net/npm/cesium@1.107/Build/Cesium/Cesium.js"></script>
 </head>
 <body>
     <div id="cesiumContainer"></div>
     
-    <div class="overlay">
-        <h1>🚀 GLOBAL SATELLITE TRACKER (GST)</h1>
-        <p>Africa's Premier Space & Geospatial Intelligence Platform</p>
-        <p>🛰️ Tracking 1000+ Satellites in Real-Time</p>
-        <p>🌍 Hyperlocal Weather AI • Geospatial Analytics</p>
-        <div class="founder">
-            Founder & CEO: Nicholas Karani<br>
-            📍 Nairobi, Kenya
+    <div class="dashboard">
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card" onclick="switchTab('space')">
+                <div class="stat-icon"><i class="fas fa-satellite"></i></div>
+                <div class="stat-value" id="satCount">--</div>
+                <div class="stat-label">Space Objects Tracked</div>
+            </div>
+            <div class="stat-card" onclick="switchTab('space')">
+                <div class="stat-icon"><i class="fas fa-eye"></i></div>
+                <div class="stat-value" id="visibleCount">--</div>
+                <div class="stat-label">Visible From Your Location</div>
+            </div>
+            <div class="stat-card" onclick="switchTab('disasters')">
+                <div class="stat-icon"><i class="fas fa-bolt"></i></div>
+                <div class="stat-value" id="disasterCount">--</div>
+                <div class="stat-label">Active Disasters</div>
+            </div>
+            <div class="stat-card" onclick="switchTab('emergency')">
+                <div class="stat-icon"><i class="fas fa-triangle-exclamation"></i></div>
+                <div class="stat-value" id="zoneCount">--</div>
+                <div class="stat-label">Emergency Zones</div>
+            </div>
+            <div class="stat-card" onclick="switchTab('launches')">
+                <div class="stat-icon"><i class="fas fa-rocket"></i></div>
+                <div class="stat-value" id="launchCount">--</div>
+                <div class="stat-label">Upcoming Launches</div>
+            </div>
+        </div>
+        
+        <!-- Content Grid -->
+        <div class="content-grid">
+            <!-- Left Panel - Space Objects -->
+            <div class="panel">
+                <div class="panel-header">
+                    <h3><i class="fas fa-satellite"></i> Space Objects <span class="live-badge" id="liveBadge">LIVE</span></h3>
+                    <input type="text" class="search-box" id="searchInput" placeholder="Search satellites..." onkeyup="searchSatellites()">
+                </div>
+                <div class="objects-list" id="objectsList">
+                    <div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading space objects...</div>
+                </div>
+            </div>
+            
+            <!-- Right Panel - Tabs -->
+            <div class="tabs-panel">
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab('disasters')"><i class="fas fa-bolt"></i> Disasters</button>
+                    <button class="tab-btn" onclick="switchTab('emergency')"><i class="fas fa-triangle-exclamation"></i> Emergency</button>
+                    <button class="tab-btn" onclick="switchTab('launches')"><i class="fas fa-rocket"></i> Launches</button>
+                </div>
+                
+                <div id="disastersTab" class="tab-content active">
+                    <div id="disastersList"><div class="loading">Loading disasters...</div></div>
+                </div>
+                <div id="emergencyTab" class="tab-content">
+                    <div id="emergencyList"><div class="loading">Loading emergency zones...</div></div>
+                </div>
+                <div id="launchesTab" class="tab-content">
+                    <div id="launchesList"><div class="loading">Loading launches...</div></div>
+                </div>
+            </div>
         </div>
     </div>
-
-    <div class="status-panel">
-        <div class="demo-notice">
-            ⚡ APIs run locally only. This is the demo frontend.
-        </div>
-        <h3 style="color:#00d4ff;">🛰️ LIVE STATUS</h3>
-        <div class="status-item">
-            <span class="status-label">Satellites Tracked:</span>
-            <span class="status-value" id="sat-count">1,247</span>
-        </div>
-        <div class="status-item">
-            <span class="status-label">Active Services:</span>
-            <span class="status-value" id="services">4/4</span>
-        </div>
-        <div class="status-item">
-            <span class="status-label">Weather Stations:</span>
-            <span class="status-value" id="weather">12,432</span>
-        </div>
-        <div class="status-item">
-            <span class="status-label">Last Update:</span>
-            <span class="status-value" id="update-time">Just now</span>
-        </div>
+    
+    <div class="brand">
+        <h1>🚀 GLOBAL SATELLITE TRACKER</h1>
+        <p>Founder & CEO: Nicholas Karani | Nairobi, Kenya</p>
     </div>
-
-    <div class="loading" id="loading">Loading Cesium...</div>
-
+    
     <script>
-        // Set your Cesium ion access token
         Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJhMDIxZWQ2Ny1iNDgyLTQ1YjgtOGZjMC1kOWM5N2MyYTRhMTAiLCJpZCI6NDA1NTg5LCJpYXQiOjE3NzM4MzI4NDh9.1LrTA_DFUNGDWWaaSkDen-8GToivYndAuO1j5-N1z20';
-
+        
+        let viewer;
+        let socket;
+        let allObjects = [];
+        
         // Initialize Cesium
         function initCesium() {
             try {
-                const viewer = new Cesium.Viewer('cesiumContainer', {
+                viewer = new Cesium.Viewer('cesiumContainer', {
                     imageryProvider: new Cesium.IonImageryProvider({ assetId: 2 }),
                     baseLayerPicker: false,
                     geocoder: true,
                     homeButton: true,
                     sceneModePicker: true,
                     navigationHelpButton: true,
-                    animation: false,
+                    animation: true,
                     timeline: false,
                     fullscreenButton: true,
-                    contextOptions: {
-                        webgl: {
-                            alpha: true,
-                            preserveDrawingBuffer: true,
-                            powerPreference: "default"
-                        },
-                        requestWebgl2: false
-                    }
+                    contextOptions: { webgl: { alpha: true, preserveDrawingBuffer: true } }
                 });
-
-                // Set initial view to Africa
                 viewer.camera.flyTo({
                     destination: Cesium.Cartesian3.fromDegrees(20, 0, 20000000),
                     duration: 2
                 });
-
-                // Add sample satellites
-                addSatellites(viewer);
-
-                document.getElementById('loading').style.display = 'none';
-                
-            } catch (error) {
-                console.error('Cesium error:', error);
-                document.getElementById('loading').innerHTML = '3D globe unavailable in this environment. Showing 2D fallback.';
-            }
+            } catch(e) { console.error('Cesium error:', e); }
         }
-
-        function addSatellites(viewer) {
-            const satellites = [
-                { name: 'ISS', lon: -122.4194, lat: 37.7749, alt: 400, color: Cesium.Color.RED },
-                { name: 'Hubble', lon: -77.5, lat: 38.5, alt: 540, color: Cesium.Color.BLUE },
-                { name: 'Tiangong', lon: 115.0, lat: 39.0, alt: 380, color: Cesium.Color.YELLOW }
-            ];
-
-            satellites.forEach(sat => {
-                viewer.entities.add({
-                    name: sat.name,
-                    position: Cesium.Cartesian3.fromDegrees(sat.lon, sat.lat, sat.alt * 1000),
-                    point: { pixelSize: 8, color: sat.color }
-                });
+        
+        // Connect WebSocket
+        function connectSocket() {
+            socket = io('http://localhost:8008', { transports: ['websocket'], reconnection: true });
+            
+            socket.on('connect', () => {
+                document.getElementById('liveBadge').innerHTML = 'LIVE';
+                document.getElementById('liveBadge').style.background = '#00ff00';
+            });
+            
+            socket.on('initial-data', (data) => {
+                allObjects = data.objects || [];
+                updateSpaceList(allObjects);
+                document.getElementById('satCount').innerHTML = (data.objects?.length || 0).toLocaleString();
+                updateDisasters(data.disasters || []);
+                updateEmergency(data.zones || []);
+                updateLaunches(data.launches || []);
+            });
+            
+            socket.on('space-update', (data) => {
+                allObjects = data.objects || [];
+                updateSpaceList(allObjects);
+                document.getElementById('satCount').innerHTML = (data.count || 0).toLocaleString();
+                document.getElementById('visibleCount').innerHTML = Math.min(50, data.count || 0);
+            });
+            
+            socket.on('disaster-update', (data) => {
+                document.getElementById('disasterCount').innerHTML = (data.count || 0).toLocaleString();
+                updateDisasters(data.disasters || []);
+            });
+            
+            socket.on('emergency-update', (data) => {
+                document.getElementById('zoneCount').innerHTML = (data.zones?.length || 0).toLocaleString();
+                updateEmergency(data.zones || []);
+            });
+            
+            socket.on('launch-update', (data) => {
+                document.getElementById('launchCount').innerHTML = (data.launches?.length || 0).toLocaleString();
+                updateLaunches(data.launches || []);
+            });
+            
+            socket.on('disconnect', () => {
+                document.getElementById('liveBadge').innerHTML = 'RECONNECTING';
+                document.getElementById('liveBadge').style.background = '#ffa500';
             });
         }
-
-        // Update time
-        setInterval(() => {
-            document.getElementById('update-time').textContent = new Date().toLocaleTimeString();
-        }, 1000);
-
-        // Start when page loads
-        window.addEventListener('load', initCesium);
+        
+        function updateSpaceList(objects) {
+            const container = document.getElementById('objectsList');
+            if (!objects || objects.length === 0) {
+                container.innerHTML = '<div class="loading">No space objects found</div>';
+                return;
+            }
+            container.innerHTML = objects.map(obj => 
+                <div class="object-item">
+                    <div class="object-name"></div>
+                    <div class="object-type"> | NORAD: </div>
+                </div>
+            ).join('');
+        }
+        
+        function updateDisasters(disasters) {
+            const container = document.getElementById('disastersList');
+            if (!disasters || disasters.length === 0) {
+                container.innerHTML = '<div class="loading">No active disasters reported</div>';
+                return;
+            }
+            container.innerHTML = disasters.map(d => 
+                <div class="disaster-item">
+                    <div class="disaster-title"></div>
+                    <div class="disaster-type"> | </div>
+                </div>
+            ).join('');
+        }
+        
+        function updateEmergency(zones) {
+            const container = document.getElementById('emergencyList');
+            if (!zones || zones.length === 0) {
+                container.innerHTML = '<div class="loading">No active emergency zones</div>';
+                return;
+            }
+            container.innerHTML = zones.map(z => 
+                <div class="emergency-item ">
+                    <div class="emergency-title"><i class="fas fa-exclamation-triangle"></i>  Alert</div>
+                    <div class="emergency-threat">Radius:  km</div>
+                    
+                </div>
+            ).join('');
+        }
+        
+        function updateLaunches(launches) {
+            const container = document.getElementById('launchesList');
+            if (!launches || launches.length === 0) {
+                container.innerHTML = '<div class="loading">No upcoming launches</div>';
+                return;
+            }
+            container.innerHTML = launches.map(l => 
+                <div class="launch-item">
+                    <div><strong></strong></div>
+                    <div style="font-size: 12px; opacity: 0.7;"> | </div>
+                </div>
+            ).join('');
+        }
+        
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            if (tab === 'disasters') {
+                document.querySelector('.tab-btn:first-child').classList.add('active');
+                document.getElementById('disastersTab').classList.add('active');
+            } else if (tab === 'emergency') {
+                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+                document.getElementById('emergencyTab').classList.add('active');
+            } else if (tab === 'launches') {
+                document.querySelectorAll('.tab-btn')[2].classList.add('active');
+                document.getElementById('launchesTab').classList.add('active');
+            }
+        }
+        
+        function searchSatellites() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = allObjects.filter(obj => obj.name?.toLowerCase().includes(query));
+            updateSpaceList(filtered);
+        }
+        
+        // Get user location for visibility
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition((pos) => {
+                fetch(http://localhost:8008/api/space/visible?lat=&lon=)
+                    .then(res => res.json())
+                    .then(data => document.getElementById('visibleCount').innerHTML = data.visibleCount || 0)
+                    .catch(() => {});
+            });
+        }
+        
+        // Initialize
+        window.addEventListener('load', () => {
+            initCesium();
+            connectSocket();
+        });
     </script>
 </body>
 </html>
