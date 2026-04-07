@@ -44,3 +44,4 @@ Write-Host "   curl http://localhost:8006/health" -ForegroundColor Gray
 Write-Host ""
 Write-Host "?? To stop all services, close the PowerShell windows" -ForegroundColor Red
 Write-Host "========================================" -ForegroundColor Cyan
+
