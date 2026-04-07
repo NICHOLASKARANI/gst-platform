@@ -506,7 +506,147 @@
         // Start everything
         window.addEventListener('load', initGlobe);
     </script>
-</body>
+<!-- Pricing Modal -->
+<div id="pricingModal" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.9);
+    z-index: 2000;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(10px);
+">
+    <div style="
+        background: linear-gradient(135deg, #0a0a2a, #1a1a4a);
+        border: 2px solid #00d4ff;
+        border-radius: 20px;
+        padding: 30px;
+        max-width: 1200px;
+        width: 90%;
+        max-height: 85vh;
+        overflow-y: auto;
+        position: relative;
+    ">
+        <button onclick="closePricing()" style="
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 28px;
+            cursor: pointer;
+        ">✕</button>
+        
+        <h2 style="color: #00d4ff; text-align: center; margin-bottom: 30px;">
+            <i class="fas fa-tag"></i> GST Pricing Plans
+        </h2>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+            <!-- Free Plan -->
+            <div style="background: rgba(255,255,255,0.05); border-radius: 15px; padding: 20px; border: 1px solid #00d4ff;">
+                <h3 style="color: #00d4ff;">Free</h3>
+                <div style="font-size: 36px; font-weight: bold;"></body></div>
+                <div style="margin-bottom: 20px;">per month</div>
+                <ul style="list-style: none; padding: 0;">
+                    <li>✓ Basic satellite tracking</li>
+                    <li>✓ 100 API calls/day</li>
+                    <li>✓ 24h weather forecast</li>
+                    <li>✓ 3D globe view</li>
+                </ul>
+                <button onclick="selectPlan('free')" style="width: 100%; padding: 10px; background: #00d4ff; color: black; border: none; border-radius: 8px; cursor: pointer; margin-top: 20px;">Get Started</button>
+            </div>
+            
+            <!-- Pro Plan -->
+            <div style="background: rgba(255,255,255,0.05); border-radius: 15px; padding: 20px; border: 2px solid #00d4ff; position: relative;">
+                <div style="position: absolute; top: -10px; right: 20px; background: #00d4ff; color: black; padding: 5px 15px; border-radius: 20px; font-size: 12px;">POPULAR</div>
+                <h3 style="color: #00d4ff;">Pro</h3>
+                <div style="font-size: 36px; font-weight: bold;">$77</div>
+                <div style="margin-bottom: 20px;">per month</div>
+                <ul style="list-style: none; padding: 0;">
+                    <li>✓ All Free features</li>
+                    <li>✓ Unlimited API calls</li>
+                    <li>✓ 7-day AI weather</li>
+                    <li>✓ Location tracking</li>
+                    <li>✓ Email support</li>
+                    <li>✓ Data export</li>
+                </ul>
+                <button onclick="selectPlan('pro')" style="width: 100%; padding: 10px; background: #00d4ff; color: black; border: none; border-radius: 8px; cursor: pointer; margin-top: 20px;">Subscribe Now</button>
+            </div>
+            
+            <!-- Enterprise Plan -->
+            <div style="background: rgba(255,255,255,0.05); border-radius: 15px; padding: 20px; border: 1px solid #00d4ff;">
+                <h3 style="color: #00d4ff;">Enterprise</h3>
+                <div style="font-size: 36px; font-weight: bold;">$5,000</div>
+                <div style="margin-bottom: 20px;">per month</div>
+                <ul style="list-style: none; padding: 0;">
+                    <li>✓ All Pro features</li>
+                    <li>✓ Custom AI models</li>
+                    <li>✓ Dedicated support 24/7</li>
+                    <li>✓ On-premise deployment</li>
+                    <li>✓ SLA 99.99%</li>
+                    <li>✓ Custom integrations</li>
+                </ul>
+                <button onclick="selectPlan('enterprise')" style="width: 100%; padding: 10px; background: #00d4ff; color: black; border: none; border-radius: 8px; cursor: pointer; margin-top: 20px;">Contact Sales</button>
+            </div>
+            
+            <!-- Government Plan -->
+            <div style="background: rgba(255,255,255,0.05); border-radius: 15px; padding: 20px; border: 1px solid #00d4ff;">
+                <h3 style="color: #00d4ff;">Government</h3>
+                <div style="font-size: 36px; font-weight: bold;">Custom</div>
+                <div style="margin-bottom: 20px;">contact for pricing</div>
+                <ul style="list-style: none; padding: 0;">
+                    <li>✓ Full platform access</li>
+                    <li>✓ Defense intelligence</li>
+                    <li>✓ Quantum encryption</li>
+                    <li>✓ Classified data handling</li>
+                    <li>✓ National security priority</li>
+                </ul>
+                <button onclick="selectPlan('government')" style="width: 100%; padding: 10px; background: #00d4ff; color: black; border: none; border-radius: 8px; cursor: pointer; margin-top: 20px;">Contact Gov Team</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function showPricing() {
+    document.getElementById('pricingModal').style.display = 'flex';
+}
+
+function closePricing() {
+    document.getElementById('pricingModal').style.display = 'none';
+}
+
+function selectPlan(plan) {
+    closePricing();
+    if (plan === 'free') {
+        alert('Free plan activated! You can now use GST platform.');
+    } else if (plan === 'pro') {
+        const useMpesa = confirm('Choose payment method:\nOK = M-Pesa (Kenya)\nCancel = Card (Stripe)');
+        if (useMpesa) {
+            const phone = prompt('Enter M-Pesa phone number (254...):');
+            if (phone) {
+                alert('M-Pesa STK push sent to ' + phone + '. Complete payment on your phone.');
+            }
+        } else {
+            alert('Redirecting to Stripe checkout...');
+        }
+    } else {
+        alert('GST sales team will contact you about ' + plan + ' plan.');
+    }
+}
+
+// Add pricing button to UI
+const pricingBtn = document.createElement('button');
+pricingBtn.innerHTML = '<i class="fas fa-crown"></i> Pricing';
+pricingBtn.style.cssText = 'position: absolute; top: 100px; right: 250px; z-index: 2; background: linear-gradient(45deg, #ffd700, #ff8c00); color: black; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: bold;';
+pricingBtn.onclick = showPricing;
+document.body.appendChild(pricingBtn);
+</script></body>
 </html>
 <!-- AI Dashboard Section - Add before closing body -->
 <div class="ai-dashboard" style="
@@ -586,4 +726,5 @@
     dashboardBtn.onclick = showAIDashboard;
     document.body.appendChild(dashboardBtn);
 </script>
+
 
