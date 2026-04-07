@@ -550,7 +550,114 @@
             <!-- Free Plan -->
             <div style="background: rgba(255,255,255,0.05); border-radius: 15px; padding: 20px; border: 1px solid #00d4ff;">
                 <h3 style="color: #00d4ff;">Free</h3>
-                <div style="font-size: 36px; font-weight: bold;"></body></div>
+                <div style="font-size: 36px; font-weight: bold;"><!-- AI Metrics Dashboard -->
+<div id="aiMetrics" style="
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    z-index: 100;
+    background: rgba(10,10,26,0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid #00d4ff;
+    border-radius: 15px;
+    padding: 15px;
+    min-width: 280px;
+    font-size: 12px;
+">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <h4 style="color: #00d4ff; margin: 0;"><i class="fas fa-chart-line"></i> AI Supercluster Metrics</h4>
+        <button onclick="toggleMetrics()" style="background: none; border: none; color: #00d4ff; cursor: pointer;">−</button>
+    </div>
+    <div id="metricsContent">
+        <div style="margin: 5px 0;"><span style="color: #888;">GPU Utilization:</span> <span id="gpuUtil" style="color: #00ff00;">0%</span></div>
+        <div style="margin: 5px 0;"><span style="color: #888;">Memory Usage:</span> <span id="memUsage" style="color: #00ff00;">0 GB</span></div>
+        <div style="margin: 5px 0;"><span style="color: #888;">Active Jobs:</span> <span id="activeJobs" style="color: #00ff00;">0</span></div>
+        <div style="margin: 5px 0;"><span style="color: #888;">Queue Length:</span> <span id="queueLength" style="color: #ffd700;">0</span></div>
+        <div style="margin: 5px 0;"><span style="color: #888;">Throughput:</span> <span id="throughput" style="color: #00ff00;">0</span> req/s</div>
+        <div style="margin-top: 10px; height: 4px; background: #333; border-radius: 2px; overflow: hidden;">
+            <div id="utilBar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #00d4ff, #00ff00); transition: width 0.5s;"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+let metricsVisible = true;
+
+function toggleMetrics() {
+    const content = document.getElementById('metricsContent');
+    const btn = event.target;
+    if (metricsVisible) {
+        content.style.display = 'none';
+        btn.innerHTML = '+';
+    } else {
+        content.style.display = 'block';
+        btn.innerHTML = '−';
+    }
+    metricsVisible = !metricsVisible;
+}
+
+// Simulate AI metrics (will be replaced with real API calls)
+function updateMetrics() {
+    const gpuUtil = Math.floor(20 + Math.random() * 70);
+    const memUsage = (50 + Math.random() * 200).toFixed(1);
+    const activeJobs = Math.floor(5 + Math.random() * 45);
+    const queueLength = Math.floor(0 + Math.random() * 15);
+    const throughput = (100 + Math.random() * 900).toFixed(0);
+    
+    document.getElementById('gpuUtil').innerHTML = gpuUtil + '%';
+    document.getElementById('memUsage').innerHTML = memUsage + ' GB';
+    document.getElementById('activeJobs').innerHTML = activeJobs;
+    document.getElementById('queueLength').innerHTML = queueLength;
+    document.getElementById('throughput').innerHTML = throughput;
+    document.getElementById('utilBar').style.width = gpuUtil + '%';
+    
+    // Color coding based on utilization
+    const color = gpuUtil > 80 ? '#ff4444' : (gpuUtil > 50 ? '#ffaa44' : '#00ff00');
+    document.getElementById('gpuUtil').style.color = color;
+}
+
+setInterval(updateMetrics, 2000);
+updateMetrics();
+</script><script>
+// Enhanced satellite orbit visualization
+function enhanceOrbitVisualization() {
+    if (typeof viewer !== 'undefined' && viewer) {
+        // Add orbit path colors based on satellite type
+        const satellites = [
+            { name: 'ISS', color: '#ff4444', type: 'Manned' },
+            { name: 'Hubble', color: '#4444ff', type: 'Telescope' },
+            { name: 'Tiangong', color: '#ffff44', type: 'Space Station' },
+            { name: 'GPS', color: '#44ff44', type: 'Navigation' },
+            { name: 'Starlink', color: '#cccccc', type: 'Communication' }
+        ];
+        
+        satellites.forEach(sat => {
+            viewer.entities.add({
+                name: sat.name + ' Orbit',
+                polyline: {
+                    positions: generateOrbitPoints(sat.name),
+                    width: 2,
+                    material: Cesium.Color.fromCssColorString(sat.color),
+                    arcType: Cesium.ArcType.GEODESIC
+                }
+            });
+        });
+    }
+}
+
+function generateOrbitPoints(satName) {
+    const points = [];
+    for (let i = 0; i <= 360; i += 10) {
+        const lon = -180 + i;
+        const lat = Math.sin(i * Math.PI / 180) * 30;
+        points.push(Cesium.Cartesian3.fromDegrees(lon, lat, 400000));
+    }
+    return points;
+}
+
+// Call after viewer is initialized
+setTimeout(enhanceOrbitVisualization, 3000);
+</script></body></div>
                 <div style="margin-bottom: 20px;">per month</div>
                 <ul style="list-style: none; padding: 0;">
                     <li>✓ Basic satellite tracking</li>
@@ -646,6 +753,113 @@ pricingBtn.innerHTML = '<i class="fas fa-crown"></i> Pricing';
 pricingBtn.style.cssText = 'position: absolute; top: 100px; right: 250px; z-index: 2; background: linear-gradient(45deg, #ffd700, #ff8c00); color: black; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: bold;';
 pricingBtn.onclick = showPricing;
 document.body.appendChild(pricingBtn);
+</script><!-- AI Metrics Dashboard -->
+<div id="aiMetrics" style="
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    z-index: 100;
+    background: rgba(10,10,26,0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid #00d4ff;
+    border-radius: 15px;
+    padding: 15px;
+    min-width: 280px;
+    font-size: 12px;
+">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <h4 style="color: #00d4ff; margin: 0;"><i class="fas fa-chart-line"></i> AI Supercluster Metrics</h4>
+        <button onclick="toggleMetrics()" style="background: none; border: none; color: #00d4ff; cursor: pointer;">−</button>
+    </div>
+    <div id="metricsContent">
+        <div style="margin: 5px 0;"><span style="color: #888;">GPU Utilization:</span> <span id="gpuUtil" style="color: #00ff00;">0%</span></div>
+        <div style="margin: 5px 0;"><span style="color: #888;">Memory Usage:</span> <span id="memUsage" style="color: #00ff00;">0 GB</span></div>
+        <div style="margin: 5px 0;"><span style="color: #888;">Active Jobs:</span> <span id="activeJobs" style="color: #00ff00;">0</span></div>
+        <div style="margin: 5px 0;"><span style="color: #888;">Queue Length:</span> <span id="queueLength" style="color: #ffd700;">0</span></div>
+        <div style="margin: 5px 0;"><span style="color: #888;">Throughput:</span> <span id="throughput" style="color: #00ff00;">0</span> req/s</div>
+        <div style="margin-top: 10px; height: 4px; background: #333; border-radius: 2px; overflow: hidden;">
+            <div id="utilBar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #00d4ff, #00ff00); transition: width 0.5s;"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+let metricsVisible = true;
+
+function toggleMetrics() {
+    const content = document.getElementById('metricsContent');
+    const btn = event.target;
+    if (metricsVisible) {
+        content.style.display = 'none';
+        btn.innerHTML = '+';
+    } else {
+        content.style.display = 'block';
+        btn.innerHTML = '−';
+    }
+    metricsVisible = !metricsVisible;
+}
+
+// Simulate AI metrics (will be replaced with real API calls)
+function updateMetrics() {
+    const gpuUtil = Math.floor(20 + Math.random() * 70);
+    const memUsage = (50 + Math.random() * 200).toFixed(1);
+    const activeJobs = Math.floor(5 + Math.random() * 45);
+    const queueLength = Math.floor(0 + Math.random() * 15);
+    const throughput = (100 + Math.random() * 900).toFixed(0);
+    
+    document.getElementById('gpuUtil').innerHTML = gpuUtil + '%';
+    document.getElementById('memUsage').innerHTML = memUsage + ' GB';
+    document.getElementById('activeJobs').innerHTML = activeJobs;
+    document.getElementById('queueLength').innerHTML = queueLength;
+    document.getElementById('throughput').innerHTML = throughput;
+    document.getElementById('utilBar').style.width = gpuUtil + '%';
+    
+    // Color coding based on utilization
+    const color = gpuUtil > 80 ? '#ff4444' : (gpuUtil > 50 ? '#ffaa44' : '#00ff00');
+    document.getElementById('gpuUtil').style.color = color;
+}
+
+setInterval(updateMetrics, 2000);
+updateMetrics();
+</script><script>
+// Enhanced satellite orbit visualization
+function enhanceOrbitVisualization() {
+    if (typeof viewer !== 'undefined' && viewer) {
+        // Add orbit path colors based on satellite type
+        const satellites = [
+            { name: 'ISS', color: '#ff4444', type: 'Manned' },
+            { name: 'Hubble', color: '#4444ff', type: 'Telescope' },
+            { name: 'Tiangong', color: '#ffff44', type: 'Space Station' },
+            { name: 'GPS', color: '#44ff44', type: 'Navigation' },
+            { name: 'Starlink', color: '#cccccc', type: 'Communication' }
+        ];
+        
+        satellites.forEach(sat => {
+            viewer.entities.add({
+                name: sat.name + ' Orbit',
+                polyline: {
+                    positions: generateOrbitPoints(sat.name),
+                    width: 2,
+                    material: Cesium.Color.fromCssColorString(sat.color),
+                    arcType: Cesium.ArcType.GEODESIC
+                }
+            });
+        });
+    }
+}
+
+function generateOrbitPoints(satName) {
+    const points = [];
+    for (let i = 0; i <= 360; i += 10) {
+        const lon = -180 + i;
+        const lat = Math.sin(i * Math.PI / 180) * 30;
+        points.push(Cesium.Cartesian3.fromDegrees(lon, lat, 400000));
+    }
+    return points;
+}
+
+// Call after viewer is initialized
+setTimeout(enhanceOrbitVisualization, 3000);
 </script></body>
 </html>
 <!-- AI Dashboard Section - Add before closing body -->
@@ -726,5 +940,7 @@ document.body.appendChild(pricingBtn);
     dashboardBtn.onclick = showAIDashboard;
     document.body.appendChild(dashboardBtn);
 </script>
+
+
 
 
