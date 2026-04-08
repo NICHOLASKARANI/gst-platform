@@ -32,6 +32,15 @@ Start-Sleep -Seconds 3
 Write-Host "`n?? Starting Notification Service (port 8009)..." -ForegroundColor Yellow
 Start-Process powershell -WindowStyle Normal -ArgumentList "-NoExit", "-Command", "cd C:\Users\HomePC\Projects\gst-platform\services\notification-service; Write-Host '?? Notification Service Starting...' -ForegroundColor Green; npm install; node server.js"
 Start-Sleep -Seconds 3
+# Start Prediction Engine
+Write-Host "`n?? Starting Prediction Engine (port 8011)..." -ForegroundColor Yellow
+Start-Process powershell -WindowStyle Normal -ArgumentList "-NoExit", "-Command", "cd C:\Users\HomePC\Projects\gst-platform\services\prediction-engine; Write-Host '?? Prediction Engine Starting...' -ForegroundColor Green; npm install; node server.js"
+Start-Sleep -Seconds 3
+
+# Start Space Weather Monitor
+Write-Host "`n?? Starting Space Weather Monitor (port 8012)..." -ForegroundColor Yellow
+Start-Process powershell -WindowStyle Normal -ArgumentList "-NoExit", "-Command", "cd C:\Users\HomePC\Projects\gst-platform\services\space-weather; Write-Host '?? Space Weather Monitor Starting...' -ForegroundColor Green; npm install; node server.js"
+Start-Sleep -Seconds 3
 # Start Web Server
 Write-Host "?? Starting Web Server (port 3000)..." -ForegroundColor Yellow
 Start-Process powershell -WindowStyle Normal -ArgumentList "-NoExit", "-Command", "cd C:\Users\HomePC\Projects\gst-platform; Write-Host '?? Web Server Starting...' -ForegroundColor Green; npx http-server apps\web -p 3000"
@@ -52,6 +61,7 @@ Write-Host "   curl http://localhost:8006/health" -ForegroundColor Gray
 Write-Host ""
 Write-Host "?? To stop all services, close the PowerShell windows" -ForegroundColor Red
 Write-Host "========================================" -ForegroundColor Cyan
+
 
 
 
