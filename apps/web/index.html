@@ -1062,6 +1062,152 @@ document.getElementById('moonWidget').onclick = showMoonDetails;
 // Initial update
 updateMoonWidget();
 setInterval(updateMoonWidget, 60000);
+</script><!-- Worldwide Location Intelligence Widget -->
+<div id="locationIntelWidget" style="
+    position: absolute;
+    top: 220px;
+    right: 20px;
+    z-index: 2;
+    background: rgba(10,10,26,0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid #00d4ff;
+    border-radius: 15px;
+    padding: 15px;
+    width: 300px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <h4 style="color: #00d4ff; margin: 0;"><i class="fas fa-globe-americas"></i> Satellite Location Intel</h4>
+        <button onclick="toggleLocationWidget()" style="background:none; border:none; color:#00d4ff; cursor:pointer;">−</button>
+    </div>
+    <div id="locationWidgetContent">
+        <input type="text" id="locationSearch" placeholder="Search city or country..." style="width: 100%; padding: 8px; background: rgba(255,255,255,0.1); border: 1px solid #00d4ff; border-radius: 8px; color: white; margin-bottom: 10px;">
+        <div id="searchResults" style="max-height: 200px; overflow-y: auto; margin-bottom: 10px;"></div>
+        <div id="selectedLocationInfo" style="font-size: 12px;"></div>
+        <button onclick="flyToLocation()" style="width: 100%; padding: 8px; background: #00d4ff; color: black; border: none; border-radius: 8px; cursor: pointer; margin-top: 10px;">
+            <i class="fas fa-location-dot"></i> Fly to Location
+        </button>
+    </div>
+</div>
+
+<script>
+let selectedLat = null;
+let selectedLon = null;
+let selectedName = null;
+
+function toggleLocationWidget() {
+    const content = document.getElementById('locationWidgetContent');
+    const btn = event.target;
+    if (content.style.display === 'none') {
+        content.style.display = 'block';
+        btn.innerHTML = '−';
+    } else {
+        content.style.display = 'none';
+        btn.innerHTML = '+';
+    }
+}
+
+async function searchLocations() {
+    const query = document.getElementById('locationSearch').value;
+    if (query.length < 2) {
+        document.getElementById('searchResults').innerHTML = '';
+        return;
+    }
+    
+    try {
+        const response = await fetch(`http://localhost:8014/api/intel/search/${query}`);
+        const data = await response.json();
+        
+        if (data.results && data.results.length > 0) {
+            document.getElementById('searchResults').innerHTML = data.results.map(loc => `
+                <div onclick="selectLocation('${loc.name}', ${loc.lat}, ${loc.lon})" style="padding: 8px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.1); hover:background: rgba(0,212,255,0.2);">
+                    <strong>${loc.name.charAt(0).toUpperCase() + loc.name.slice(1)}</strong><br>
+                    <small>${loc.country} | Population: ${loc.population.toLocaleString()}</small>
+                </div>
+            `).join('');
+        } else {
+            document.getElementById('searchResults').innerHTML = '<div style="padding: 8px; color: #888;">No locations found</div>';
+        }
+    } catch (error) {
+        console.log('Search error:', error);
+    }
+}
+
+async function selectLocation(name, lat, lon) {
+    selectedLat = lat;
+    selectedLon = lon;
+    selectedName = name;
+    
+    try {
+        const response = await fetch(`http://localhost:8014/api/intel/location/${name}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('selectedLocationInfo').innerHTML = `
+                <div style="background: rgba(0,212,255,0.1); padding: 10px; border-radius: 8px;">
+                    <strong>📍 ${data.location.name.charAt(0).toUpperCase() + data.location.name.slice(1)}</strong><br>
+                    Country: ${data.location.country}<br>
+                    Population: ${data.location.population.toLocaleString()}<br>
+                    🌡️ Weather: ${data.weather.temperature}°C, ${data.weather.conditions}<br>
+                    🛰️ Cloud Cover: ${data.coverage.cloudCover}%<br>
+                    📸 Last Image: ${new Date(data.coverage.lastImage).toLocaleDateString()}<br>
+                    <span style="color: #888; font-size: 10px;">Click "Fly to Location" to see on globe</span>
+                </div>
+            `;
+            
+            // Also show landmarks
+            if (data.location.landmarks) {
+                document.getElementById('selectedLocationInfo').innerHTML += `
+                    <div style="margin-top: 8px; font-size: 11px;">
+                        🏛️ Landmarks: ${data.location.landmarks.join(', ')}
+                    </div>
+                `;
+            }
+        }
+    } catch (error) {
+        console.log('Location info error:', error);
+    }
+}
+
+function flyToLocation() {
+    if (selectedLat !== null && selectedLon !== null && typeof viewer !== 'undefined') {
+        viewer.camera.flyTo({
+            destination: Cesium.Cartesian3.fromDegrees(selectedLon, selectedLat, 5000000),
+            duration: 3
+        });
+        
+        // Add temporary marker
+        viewer.entities.add({
+            name: selectedName,
+            position: Cesium.Cartesian3.fromDegrees(selectedLon, selectedLat),
+            billboard: {
+                image: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="%2300d4ff"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>',
+                scale: 0.8,
+                verticalOrigin: Cesium.VerticalOrigin.BOTTOM
+            },
+            label: {
+                text: selectedName,
+                font: '14px sans-serif',
+                fillColor: Cesium.Color.WHITE,
+                style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                outlineWidth: 2,
+                pixelOffset: new Cesium.Cartesian2(0, -30)
+            }
+        });
+        
+        document.getElementById('locationSearch').value = '';
+        document.getElementById('searchResults').innerHTML = '';
+    }
+}
+
+// Add search input event listener
+document.getElementById('locationSearch').addEventListener('input', searchLocations);
+
+// Initial update
+setTimeout(() => {
+    // Preload some data
+    selectLocation('nairobi', -1.286389, 36.817223);
+}, 2000);
 </script></body></div>
                 <div style="margin-bottom: 20px;">per month</div>
                 <ul style="list-style: none; padding: 0;">
@@ -1622,6 +1768,152 @@ document.getElementById('moonWidget').onclick = showMoonDetails;
 // Initial update
 updateMoonWidget();
 setInterval(updateMoonWidget, 60000);
+</script><!-- Worldwide Location Intelligence Widget -->
+<div id="locationIntelWidget" style="
+    position: absolute;
+    top: 220px;
+    right: 20px;
+    z-index: 2;
+    background: rgba(10,10,26,0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid #00d4ff;
+    border-radius: 15px;
+    padding: 15px;
+    width: 300px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <h4 style="color: #00d4ff; margin: 0;"><i class="fas fa-globe-americas"></i> Satellite Location Intel</h4>
+        <button onclick="toggleLocationWidget()" style="background:none; border:none; color:#00d4ff; cursor:pointer;">−</button>
+    </div>
+    <div id="locationWidgetContent">
+        <input type="text" id="locationSearch" placeholder="Search city or country..." style="width: 100%; padding: 8px; background: rgba(255,255,255,0.1); border: 1px solid #00d4ff; border-radius: 8px; color: white; margin-bottom: 10px;">
+        <div id="searchResults" style="max-height: 200px; overflow-y: auto; margin-bottom: 10px;"></div>
+        <div id="selectedLocationInfo" style="font-size: 12px;"></div>
+        <button onclick="flyToLocation()" style="width: 100%; padding: 8px; background: #00d4ff; color: black; border: none; border-radius: 8px; cursor: pointer; margin-top: 10px;">
+            <i class="fas fa-location-dot"></i> Fly to Location
+        </button>
+    </div>
+</div>
+
+<script>
+let selectedLat = null;
+let selectedLon = null;
+let selectedName = null;
+
+function toggleLocationWidget() {
+    const content = document.getElementById('locationWidgetContent');
+    const btn = event.target;
+    if (content.style.display === 'none') {
+        content.style.display = 'block';
+        btn.innerHTML = '−';
+    } else {
+        content.style.display = 'none';
+        btn.innerHTML = '+';
+    }
+}
+
+async function searchLocations() {
+    const query = document.getElementById('locationSearch').value;
+    if (query.length < 2) {
+        document.getElementById('searchResults').innerHTML = '';
+        return;
+    }
+    
+    try {
+        const response = await fetch(`http://localhost:8014/api/intel/search/${query}`);
+        const data = await response.json();
+        
+        if (data.results && data.results.length > 0) {
+            document.getElementById('searchResults').innerHTML = data.results.map(loc => `
+                <div onclick="selectLocation('${loc.name}', ${loc.lat}, ${loc.lon})" style="padding: 8px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.1); hover:background: rgba(0,212,255,0.2);">
+                    <strong>${loc.name.charAt(0).toUpperCase() + loc.name.slice(1)}</strong><br>
+                    <small>${loc.country} | Population: ${loc.population.toLocaleString()}</small>
+                </div>
+            `).join('');
+        } else {
+            document.getElementById('searchResults').innerHTML = '<div style="padding: 8px; color: #888;">No locations found</div>';
+        }
+    } catch (error) {
+        console.log('Search error:', error);
+    }
+}
+
+async function selectLocation(name, lat, lon) {
+    selectedLat = lat;
+    selectedLon = lon;
+    selectedName = name;
+    
+    try {
+        const response = await fetch(`http://localhost:8014/api/intel/location/${name}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('selectedLocationInfo').innerHTML = `
+                <div style="background: rgba(0,212,255,0.1); padding: 10px; border-radius: 8px;">
+                    <strong>📍 ${data.location.name.charAt(0).toUpperCase() + data.location.name.slice(1)}</strong><br>
+                    Country: ${data.location.country}<br>
+                    Population: ${data.location.population.toLocaleString()}<br>
+                    🌡️ Weather: ${data.weather.temperature}°C, ${data.weather.conditions}<br>
+                    🛰️ Cloud Cover: ${data.coverage.cloudCover}%<br>
+                    📸 Last Image: ${new Date(data.coverage.lastImage).toLocaleDateString()}<br>
+                    <span style="color: #888; font-size: 10px;">Click "Fly to Location" to see on globe</span>
+                </div>
+            `;
+            
+            // Also show landmarks
+            if (data.location.landmarks) {
+                document.getElementById('selectedLocationInfo').innerHTML += `
+                    <div style="margin-top: 8px; font-size: 11px;">
+                        🏛️ Landmarks: ${data.location.landmarks.join(', ')}
+                    </div>
+                `;
+            }
+        }
+    } catch (error) {
+        console.log('Location info error:', error);
+    }
+}
+
+function flyToLocation() {
+    if (selectedLat !== null && selectedLon !== null && typeof viewer !== 'undefined') {
+        viewer.camera.flyTo({
+            destination: Cesium.Cartesian3.fromDegrees(selectedLon, selectedLat, 5000000),
+            duration: 3
+        });
+        
+        // Add temporary marker
+        viewer.entities.add({
+            name: selectedName,
+            position: Cesium.Cartesian3.fromDegrees(selectedLon, selectedLat),
+            billboard: {
+                image: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="%2300d4ff"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>',
+                scale: 0.8,
+                verticalOrigin: Cesium.VerticalOrigin.BOTTOM
+            },
+            label: {
+                text: selectedName,
+                font: '14px sans-serif',
+                fillColor: Cesium.Color.WHITE,
+                style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                outlineWidth: 2,
+                pixelOffset: new Cesium.Cartesian2(0, -30)
+            }
+        });
+        
+        document.getElementById('locationSearch').value = '';
+        document.getElementById('searchResults').innerHTML = '';
+    }
+}
+
+// Add search input event listener
+document.getElementById('locationSearch').addEventListener('input', searchLocations);
+
+// Initial update
+setTimeout(() => {
+    // Preload some data
+    selectLocation('nairobi', -1.286389, 36.817223);
+}, 2000);
 </script></body>
 </html>
 <!-- AI Dashboard Section - Add before closing body -->
@@ -1702,6 +1994,7 @@ setInterval(updateMoonWidget, 60000);
     dashboardBtn.onclick = showAIDashboard;
     document.body.appendChild(dashboardBtn);
 </script>
+
 
 
 

@@ -45,6 +45,10 @@ Start-Sleep -Seconds 3
 Write-Host "`n?? Starting Moon Tracking Service (port 8013)..." -ForegroundColor Yellow
 Start-Process powershell -WindowStyle Normal -ArgumentList "-NoExit", "-Command", "cd C:\Users\HomePC\Projects\gst-platform\services\moon-tracking; Write-Host '?? Moon Tracking Service Starting...' -ForegroundColor Green; npm install; node server.js"
 Start-Sleep -Seconds 3
+# Start Satellite Intelligence Service
+Write-Host "`n??? Starting Satellite Intelligence Service (port 8014)..." -ForegroundColor Yellow
+Start-Process powershell -WindowStyle Normal -ArgumentList "-NoExit", "-Command", "cd C:\Users\HomePC\Projects\gst-platform\services\satellite-intel; Write-Host '??? Satellite Intelligence Service Starting...' -ForegroundColor Green; npm install; node server.js"
+Start-Sleep -Seconds 3
 # Start Web Server
 Write-Host "?? Starting Web Server (port 3000)..." -ForegroundColor Yellow
 Start-Process powershell -WindowStyle Normal -ArgumentList "-NoExit", "-Command", "cd C:\Users\HomePC\Projects\gst-platform; Write-Host '?? Web Server Starting...' -ForegroundColor Green; npx http-server apps\web -p 3000"
@@ -65,6 +69,7 @@ Write-Host "   curl http://localhost:8006/health" -ForegroundColor Gray
 Write-Host ""
 Write-Host "?? To stop all services, close the PowerShell windows" -ForegroundColor Red
 Write-Host "========================================" -ForegroundColor Cyan
+
 
 
 
