@@ -189,6 +189,54 @@
 
     <div class="loading" id="loading">Loading GST AI Platform...</div>
 
+<script>
+// Ensure Cesium loads with fallback
+window.addEventListener('load', function() {
+    const loadingDiv = document.getElementById('loading');
+    const timeout = setTimeout(function() {
+        if (loadingDiv.style.display !== 'none') {
+            loadingDiv.innerHTML = '⚠️ 3D globe unavailable. Using 2D view.';
+            setTimeout(function() {
+                loadingDiv.style.display = 'none';
+            }, 3000);
+        }
+    }, 10000);
+    
+    if (typeof initGlobe === 'function') {
+        try {
+            initGlobe();
+            clearTimeout(timeout);
+        } catch(e) {
+            console.error('Globe init failed:', e);
+        }
+    }
+});
+</script>
+
+<script>
+// Ensure Cesium loads with fallback
+window.addEventListener('load', function() {
+    const loadingDiv = document.getElementById('loading');
+    const timeout = setTimeout(function() {
+        if (loadingDiv.style.display !== 'none') {
+            loadingDiv.innerHTML = '⚠️ 3D globe unavailable. Using 2D view.';
+            setTimeout(function() {
+                loadingDiv.style.display = 'none';
+            }, 3000);
+        }
+    }, 10000);
+    
+    if (typeof initGlobe === 'function') {
+        try {
+            initGlobe();
+            clearTimeout(timeout);
+        } catch(e) {
+            console.error('Globe init failed:', e);
+        }
+    }
+});
+</script>
+
     <script src="https://cdn.jsdelivr.net/npm/cesium@1.107/Build/Cesium/Cesium.js"></script>
     <script>
         // ============================================
@@ -868,6 +916,152 @@ async function updateSpaceWeather() {
 }
 setInterval(updateSpaceWeather, 30000);
 updateSpaceWeather();
+</script><!-- Moon Tracking Widget -->
+<div id="moonWidget" style="
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    z-index: 2;
+    background: rgba(10,10,26,0.85);
+    backdrop-filter: blur(10px);
+    border: 1px solid #ffd700;
+    border-radius: 15px;
+    padding: 15px;
+    min-width: 280px;
+    cursor: pointer;
+    transition: all 0.3s;
+">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h4 style="color: #ffd700; margin: 0;"><i class="fas fa-moon"></i> Lunar Status</h4>
+        <span id="moonPhase">Loading...</span>
+    </div>
+    <div style="margin-top: 10px;">
+        <div>🌙 Phase: <span id="moonPhaseName">---</span></div>
+        <div>📡 Illumination: <span id="moonIllumination">---</span>%</div>
+        <div>🚀 Artemis: <span id="artemisStatus">---</span></div>
+        <div>👨‍🚀 Astronauts on Moon: <span id="astronautsOnMoon">---</span></div>
+    </div>
+    <div style="margin-top: 10px; font-size: 10px; color: #888;">
+        Click for detailed lunar data
+    </div>
+</div>
+
+<!-- Moon Details Modal -->
+<div id="moonModal" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.95);
+    z-index: 4000;
+    display: none;
+    justify-content: center;
+    align-items: center;
+">
+    <div style="background: linear-gradient(135deg, #0a0a2a, #1a1a4a);
+                border: 2px solid #ffd700;
+                border-radius: 20px;
+                padding: 30px;
+                width: 90%;
+                max-width: 600px;
+                max-height: 80vh;
+                overflow-y: auto;">
+        <div style="display: flex; justify-content: space-between;">
+            <h2 style="color: #ffd700;"><i class="fas fa-moon"></i> GST Lunar Intelligence</h2>
+            <button onclick="closeMoonModal()" style="background:none; border:none; color:white; font-size:24px;">✕</button>
+        </div>
+        
+        <div id="moonDetailedData"></div>
+        
+        <div style="margin-top: 20px; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px;">
+            <h4>🌙 Artemis Missions</h4>
+            <div id="artemisMissions"></div>
+        </div>
+        
+        <div style="margin-top: 20px; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px;">
+            <h4>👨‍🚀 Astronauts (2 days ago)</h4>
+            <div id="astronautLocation"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+let moonData = {};
+
+async function updateMoonWidget() {
+    try {
+        const response = await fetch('http://localhost:8013/api/moon/current');
+        moonData = await response.json();
+        
+        document.getElementById('moonPhaseName').innerHTML = moonData.current.phase;
+        document.getElementById('moonIllumination').innerHTML = moonData.current.illumination;
+        document.getElementById('artemisStatus').innerHTML = moonData.missions['Artemis II'].status;
+        document.getElementById('astronautsOnMoon').innerHTML = moonData.recentActivity['Artemis Base Camp'].personnel;
+    } catch (error) {
+        console.log('Moon service not available');
+    }
+}
+
+async function showMoonDetails() {
+    const modal = document.getElementById('moonModal');
+    modal.style.display = 'flex';
+    
+    try {
+        // Get detailed data
+        const [moonRes, astroRes] = await Promise.all([
+            fetch('http://localhost:8013/api/moon/current'),
+            fetch('http://localhost:8013/api/moon/astronauts')
+        ]);
+        const moon = await moonRes.json();
+        const astronauts = await astroRes.json();
+        
+        // Display detailed data
+        document.getElementById('moonDetailedData').innerHTML = `
+            <div style="margin-bottom: 15px;">
+                <h4>Current Moon Status</h4>
+                <div>Phase: ${moon.current.phase}</div>
+                <div>Illumination: ${moon.current.illumination}%</div>
+                <div>Distance: ${Math.round(moon.current.distanceKm).toLocaleString()} km</div>
+                <div>Age: ${moon.current.age} days</div>
+                <div>Rise: ${moon.current.riseTime}</div>
+                <div>Set: ${moon.current.setTime}</div>
+            </div>
+        `;
+        
+        document.getElementById('artemisMissions').innerHTML = Object.entries(moon.missions).map(([name, data]) => `
+            <div style="margin: 10px 0; padding: 10px; background: rgba(255,215,0,0.1); border-radius: 8px;">
+                <strong>${name}</strong><br>
+                ${data.launched ? 'Launched: ' + data.launched : 'Scheduled: ' + data.scheduled}<br>
+                Status: ${data.status}<br>
+                Astronauts: ${data.astronauts}
+            </div>
+        `).join('');
+        
+        document.getElementById('astronautLocation').innerHTML = `
+            <div><strong>Location:</strong> ${astronauts.location}</div>
+            <div><strong>Coordinates:</strong> ${astronauts.coordinates.latitude}°, ${astronauts.coordinates.longitude}°</div>
+            <div><strong>Activity:</strong> ${astronauts.activity}</div>
+            <div><strong>Timestamp:</strong> ${new Date(astronauts.timestamp).toLocaleString()}</div>
+            <div style="margin-top: 10px;"><strong>Astronauts:</strong></div>
+            ${astronauts.astronauts.map(a => `<div>• ${a.name} (${a.country}) - ${a.status}</div>`).join('')}
+        `;
+        
+    } catch (error) {
+        document.getElementById('moonDetailedData').innerHTML = '<div>Error loading lunar data</div>';
+    }
+}
+
+function closeMoonModal() {
+    document.getElementById('moonModal').style.display = 'none';
+}
+
+// Add click handler to moon widget
+document.getElementById('moonWidget').onclick = showMoonDetails;
+
+// Initial update
+updateMoonWidget();
+setInterval(updateMoonWidget, 60000);
 </script></body></div>
                 <div style="margin-bottom: 20px;">per month</div>
                 <ul style="list-style: none; padding: 0;">
@@ -1282,6 +1476,152 @@ async function updateSpaceWeather() {
 }
 setInterval(updateSpaceWeather, 30000);
 updateSpaceWeather();
+</script><!-- Moon Tracking Widget -->
+<div id="moonWidget" style="
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    z-index: 2;
+    background: rgba(10,10,26,0.85);
+    backdrop-filter: blur(10px);
+    border: 1px solid #ffd700;
+    border-radius: 15px;
+    padding: 15px;
+    min-width: 280px;
+    cursor: pointer;
+    transition: all 0.3s;
+">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h4 style="color: #ffd700; margin: 0;"><i class="fas fa-moon"></i> Lunar Status</h4>
+        <span id="moonPhase">Loading...</span>
+    </div>
+    <div style="margin-top: 10px;">
+        <div>🌙 Phase: <span id="moonPhaseName">---</span></div>
+        <div>📡 Illumination: <span id="moonIllumination">---</span>%</div>
+        <div>🚀 Artemis: <span id="artemisStatus">---</span></div>
+        <div>👨‍🚀 Astronauts on Moon: <span id="astronautsOnMoon">---</span></div>
+    </div>
+    <div style="margin-top: 10px; font-size: 10px; color: #888;">
+        Click for detailed lunar data
+    </div>
+</div>
+
+<!-- Moon Details Modal -->
+<div id="moonModal" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.95);
+    z-index: 4000;
+    display: none;
+    justify-content: center;
+    align-items: center;
+">
+    <div style="background: linear-gradient(135deg, #0a0a2a, #1a1a4a);
+                border: 2px solid #ffd700;
+                border-radius: 20px;
+                padding: 30px;
+                width: 90%;
+                max-width: 600px;
+                max-height: 80vh;
+                overflow-y: auto;">
+        <div style="display: flex; justify-content: space-between;">
+            <h2 style="color: #ffd700;"><i class="fas fa-moon"></i> GST Lunar Intelligence</h2>
+            <button onclick="closeMoonModal()" style="background:none; border:none; color:white; font-size:24px;">✕</button>
+        </div>
+        
+        <div id="moonDetailedData"></div>
+        
+        <div style="margin-top: 20px; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px;">
+            <h4>🌙 Artemis Missions</h4>
+            <div id="artemisMissions"></div>
+        </div>
+        
+        <div style="margin-top: 20px; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px;">
+            <h4>👨‍🚀 Astronauts (2 days ago)</h4>
+            <div id="astronautLocation"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+let moonData = {};
+
+async function updateMoonWidget() {
+    try {
+        const response = await fetch('http://localhost:8013/api/moon/current');
+        moonData = await response.json();
+        
+        document.getElementById('moonPhaseName').innerHTML = moonData.current.phase;
+        document.getElementById('moonIllumination').innerHTML = moonData.current.illumination;
+        document.getElementById('artemisStatus').innerHTML = moonData.missions['Artemis II'].status;
+        document.getElementById('astronautsOnMoon').innerHTML = moonData.recentActivity['Artemis Base Camp'].personnel;
+    } catch (error) {
+        console.log('Moon service not available');
+    }
+}
+
+async function showMoonDetails() {
+    const modal = document.getElementById('moonModal');
+    modal.style.display = 'flex';
+    
+    try {
+        // Get detailed data
+        const [moonRes, astroRes] = await Promise.all([
+            fetch('http://localhost:8013/api/moon/current'),
+            fetch('http://localhost:8013/api/moon/astronauts')
+        ]);
+        const moon = await moonRes.json();
+        const astronauts = await astroRes.json();
+        
+        // Display detailed data
+        document.getElementById('moonDetailedData').innerHTML = `
+            <div style="margin-bottom: 15px;">
+                <h4>Current Moon Status</h4>
+                <div>Phase: ${moon.current.phase}</div>
+                <div>Illumination: ${moon.current.illumination}%</div>
+                <div>Distance: ${Math.round(moon.current.distanceKm).toLocaleString()} km</div>
+                <div>Age: ${moon.current.age} days</div>
+                <div>Rise: ${moon.current.riseTime}</div>
+                <div>Set: ${moon.current.setTime}</div>
+            </div>
+        `;
+        
+        document.getElementById('artemisMissions').innerHTML = Object.entries(moon.missions).map(([name, data]) => `
+            <div style="margin: 10px 0; padding: 10px; background: rgba(255,215,0,0.1); border-radius: 8px;">
+                <strong>${name}</strong><br>
+                ${data.launched ? 'Launched: ' + data.launched : 'Scheduled: ' + data.scheduled}<br>
+                Status: ${data.status}<br>
+                Astronauts: ${data.astronauts}
+            </div>
+        `).join('');
+        
+        document.getElementById('astronautLocation').innerHTML = `
+            <div><strong>Location:</strong> ${astronauts.location}</div>
+            <div><strong>Coordinates:</strong> ${astronauts.coordinates.latitude}°, ${astronauts.coordinates.longitude}°</div>
+            <div><strong>Activity:</strong> ${astronauts.activity}</div>
+            <div><strong>Timestamp:</strong> ${new Date(astronauts.timestamp).toLocaleString()}</div>
+            <div style="margin-top: 10px;"><strong>Astronauts:</strong></div>
+            ${astronauts.astronauts.map(a => `<div>• ${a.name} (${a.country}) - ${a.status}</div>`).join('')}
+        `;
+        
+    } catch (error) {
+        document.getElementById('moonDetailedData').innerHTML = '<div>Error loading lunar data</div>';
+    }
+}
+
+function closeMoonModal() {
+    document.getElementById('moonModal').style.display = 'none';
+}
+
+// Add click handler to moon widget
+document.getElementById('moonWidget').onclick = showMoonDetails;
+
+// Initial update
+updateMoonWidget();
+setInterval(updateMoonWidget, 60000);
 </script></body>
 </html>
 <!-- AI Dashboard Section - Add before closing body -->
@@ -1362,6 +1702,8 @@ updateSpaceWeather();
     dashboardBtn.onclick = showAIDashboard;
     document.body.appendChild(dashboardBtn);
 </script>
+
+
 
 
 
