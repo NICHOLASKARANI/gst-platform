@@ -1,0 +1,15 @@
+{
+  "name": "advanced-satellite",
+  "version": "1.0.0",
+  "description": "GST Advanced Satellite Service with Real Data",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "axios": "^1.6.0",
+    "node-cron": "^3.0.2"
+  }
+}
