@@ -1208,6 +1208,191 @@ setTimeout(() => {
     // Preload some data
     selectLocation('nairobi', -1.286389, 36.817223);
 }, 2000);
+</script><!-- Social Media Consent Tracking Widget -->
+<div id="socialTrackingWidget" style="
+    position: fixed;
+    bottom: 100px;
+    right: 20px;
+    z-index: 100;
+    background: rgba(10,10,26,0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid #ffd700;
+    border-radius: 15px;
+    padding: 15px;
+    width: 320px;
+    display: none;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+">
+    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+        <h4 style="color: #ffd700; margin: 0;"><i class="fas fa-shield-alt"></i> Consent-Based Tracking</h4>
+        <button onclick="toggleSocialTracking()" style="background:none; border:none; color:#ffd700; cursor:pointer;">✕</button>
+    </div>
+    <div id="socialTrackingContent">
+        <div class="legal-notice" style="background: rgba(255,215,0,0.1); padding: 10px; border-radius: 8px; margin-bottom: 10px; font-size: 11px;">
+            <i class="fas fa-balance-scale"></i> This feature requires EXPLICIT USER CONSENT.<br>
+            Kenya Data Protection Act 2019 - Section 5
+        </div>
+        
+        <div class="tab-buttons" style="display: flex; gap: 10px; margin-bottom: 10px;">
+            <button onclick="showTrackingTab('phone')" style="flex:1; padding: 8px; background: #00d4ff; border: none; border-radius: 5px; cursor: pointer;">📱 Phone</button>
+            <button onclick="showTrackingTab('social')" style="flex:1; padding: 8px; background: rgba(255,255,255,0.1); border: none; border-radius: 5px; cursor: pointer;">🌐 Social</button>
+            <button onclick="showTrackingTab('manage')" style="flex:1; padding: 8px; background: rgba(255,255,255,0.1); border: none; border-radius: 5px; cursor: pointer;">⚙️ Manage</button>
+        </div>
+        
+        <!-- Phone Tracking Tab -->
+        <div id="phoneTab" class="tracking-tab">
+            <input type="text" id="targetPhone" placeholder="Phone number (254...)" style="width:100%; padding: 8px; margin: 5px 0; background: rgba(255,255,255,0.1); border: 1px solid #00d4ff; border-radius: 5px; color: white;">
+            <input type="text" id="requesterName" placeholder="Your name" style="width:100%; padding: 8px; margin: 5px 0; background: rgba(255,255,255,0.1); border: 1px solid #00d4ff; border-radius: 5px; color: white;">
+            <button onclick="requestPhoneConsent()" style="width:100%; padding: 8px; background: #00d4ff; color: black; border: none; border-radius: 5px; cursor: pointer; margin-top: 5px;">
+                Request Consent
+            </button>
+            <div id="phoneStatus" style="font-size: 11px; margin-top: 8px; color: #888;"></div>
+        </div>
+        
+        <!-- Social Media Tab -->
+        <div id="socialTab" class="tracking-tab" style="display: none;">
+            <select id="socialPlatform" style="width:100%; padding: 8px; margin: 5px 0; background: rgba(255,255,255,0.1); border: 1px solid #00d4ff; border-radius: 5px; color: white;">
+                <option value="whatsapp">WhatsApp</option>
+                <option value="telegram">Telegram</option>
+                <option value="twitter">X (Twitter)</option>
+                <option value="instagram">Instagram</option>
+            </select>
+            <input type="text" id="socialUsername" placeholder="Username/Handle" style="width:100%; padding: 8px; margin: 5px 0; background: rgba(255,255,255,0.1); border: 1px solid #00d4ff; border-radius: 5px; color: white;">
+            <div class="legal-warning" style="background: rgba(255,0,0,0.1); padding: 8px; border-radius: 5px; margin: 10px 0; font-size: 11px;">
+                ⚠️ You must obtain explicit consent from the person before tracking.<br>
+                GST only provides the infrastructure - you are responsible for legal compliance.
+            </div>
+            <button onclick="sendSocialConsentRequest()" style="width:100%; padding: 8px; background: #ffd700; color: black; border: none; border-radius: 5px; cursor: pointer;">
+                Send Consent Request
+            </button>
+        </div>
+        
+        <!-- Manage Tab -->
+        <div id="manageTab" class="tracking-tab" style="display: none;">
+            <input type="text" id="myPhone" placeholder="Your phone number" style="width:100%; padding: 8px; margin: 5px 0; background: rgba(255,255,255,0.1); border: 1px solid #00d4ff; border-radius: 5px; color: white;">
+            <button onclick="viewMyShares()" style="width:100%; padding: 8px; background: #00d4ff; color: black; border: none; border-radius: 5px; cursor: pointer; margin-top: 5px;">
+                View Who Can Track Me
+            </button>
+            <div id="sharesList" style="margin-top: 10px; font-size: 12px;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Button to open widget -->
+<button id="trackingBtn" style="
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 100;
+    background: #ffd700;
+    color: black;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 50px;
+    cursor: pointer;
+    font-weight: bold;
+    box-shadow: 0 5px 20px rgba(255,215,0,0.3);
+">
+    <i class="fas fa-shield-alt"></i> Consent Tracking
+</button>
+
+<script>
+let trackingVisible = false;
+
+function toggleSocialTracking() {
+    const widget = document.getElementById('socialTrackingWidget');
+    trackingVisible = !trackingVisible;
+    widget.style.display = trackingVisible ? 'block' : 'none';
+}
+
+function showTrackingTab(tab) {
+    document.getElementById('phoneTab').style.display = tab === 'phone' ? 'block' : 'none';
+    document.getElementById('socialTab').style.display = tab === 'social' ? 'block' : 'none';
+    document.getElementById('manageTab').style.display = tab === 'manage' ? 'block' : 'none';
+}
+
+async function requestPhoneConsent() {
+    const phoneNumber = document.getElementById('targetPhone').value;
+    const requesterName = document.getElementById('requesterName').value;
+    
+    if (!phoneNumber || !requesterName) {
+        alert('Please fill all fields');
+        return;
+    }
+    
+    try {
+        const response = await fetch('http://localhost:8015/api/tracking/request', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phoneNumber, requesterName, purpose: 'Family location sharing' })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('phoneStatus').innerHTML = `
+                ✅ Consent request sent to ${phoneNumber}<br>
+                Share this link with them: ${window.location.origin}/consent/${data.requestId}<br>
+                They must approve before tracking begins.
+            `;
+        } else {
+            document.getElementById('phoneStatus').innerHTML = '❌ Error: ' + data.error;
+        }
+    } catch (error) {
+        document.getElementById('phoneStatus').innerHTML = '❌ Service error';
+    }
+}
+
+async function sendSocialConsentRequest() {
+    const platform = document.getElementById('socialPlatform').value;
+    const username = document.getElementById('socialUsername').value;
+    
+    if (!username) {
+        alert('Please enter username');
+        return;
+    }
+    
+    alert(`Consent request prepared for ${platform} user @${username}.\n\nGST provides the infrastructure. You must obtain explicit consent through ${platform} directly.`);
+}
+
+async function viewMyShares() {
+    const phoneNumber = document.getElementById('myPhone').value;
+    
+    if (!phoneNumber) {
+        alert('Enter your phone number');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`http://localhost:8015/api/tracking/my-shares/${phoneNumber}`);
+        const data = await response.json();
+        
+        if (data.shares && data.shares.length > 0) {
+            document.getElementById('sharesList').innerHTML = data.shares.map(s => `
+                <div style="background: rgba(0,212,255,0.1); padding: 8px; margin: 5px 0; border-radius: 5px;">
+                    Shared with: ${s.sharedWith}<br>
+                    Expires: ${new Date(s.expiresAt).toLocaleString()}<br>
+                    <button onclick="revokeConsent('${s.shareId}')" style="background: #ff4444; color: white; border: none; padding: 3px 10px; border-radius: 3px; cursor: pointer;">Revoke</button>
+                </div>
+            `).join('');
+        } else {
+            document.getElementById('sharesList').innerHTML = '<div style="color: #888;">No active shares</div>';
+        }
+    } catch (error) {
+        document.getElementById('sharesList').innerHTML = 'Error loading shares';
+    }
+}
+
+async function revokeConsent(shareId) {
+    const response = await fetch(`http://localhost:8015/api/tracking/revoke/${shareId}`, {
+        method: 'DELETE'
+    });
+    const data = await response.json();
+    alert(data.message);
+    viewMyShares();
+}
+
+document.getElementById('trackingBtn').onclick = toggleSocialTracking;
 </script></body></div>
                 <div style="margin-bottom: 20px;">per month</div>
                 <ul style="list-style: none; padding: 0;">
@@ -1914,6 +2099,191 @@ setTimeout(() => {
     // Preload some data
     selectLocation('nairobi', -1.286389, 36.817223);
 }, 2000);
+</script><!-- Social Media Consent Tracking Widget -->
+<div id="socialTrackingWidget" style="
+    position: fixed;
+    bottom: 100px;
+    right: 20px;
+    z-index: 100;
+    background: rgba(10,10,26,0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid #ffd700;
+    border-radius: 15px;
+    padding: 15px;
+    width: 320px;
+    display: none;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+">
+    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+        <h4 style="color: #ffd700; margin: 0;"><i class="fas fa-shield-alt"></i> Consent-Based Tracking</h4>
+        <button onclick="toggleSocialTracking()" style="background:none; border:none; color:#ffd700; cursor:pointer;">✕</button>
+    </div>
+    <div id="socialTrackingContent">
+        <div class="legal-notice" style="background: rgba(255,215,0,0.1); padding: 10px; border-radius: 8px; margin-bottom: 10px; font-size: 11px;">
+            <i class="fas fa-balance-scale"></i> This feature requires EXPLICIT USER CONSENT.<br>
+            Kenya Data Protection Act 2019 - Section 5
+        </div>
+        
+        <div class="tab-buttons" style="display: flex; gap: 10px; margin-bottom: 10px;">
+            <button onclick="showTrackingTab('phone')" style="flex:1; padding: 8px; background: #00d4ff; border: none; border-radius: 5px; cursor: pointer;">📱 Phone</button>
+            <button onclick="showTrackingTab('social')" style="flex:1; padding: 8px; background: rgba(255,255,255,0.1); border: none; border-radius: 5px; cursor: pointer;">🌐 Social</button>
+            <button onclick="showTrackingTab('manage')" style="flex:1; padding: 8px; background: rgba(255,255,255,0.1); border: none; border-radius: 5px; cursor: pointer;">⚙️ Manage</button>
+        </div>
+        
+        <!-- Phone Tracking Tab -->
+        <div id="phoneTab" class="tracking-tab">
+            <input type="text" id="targetPhone" placeholder="Phone number (254...)" style="width:100%; padding: 8px; margin: 5px 0; background: rgba(255,255,255,0.1); border: 1px solid #00d4ff; border-radius: 5px; color: white;">
+            <input type="text" id="requesterName" placeholder="Your name" style="width:100%; padding: 8px; margin: 5px 0; background: rgba(255,255,255,0.1); border: 1px solid #00d4ff; border-radius: 5px; color: white;">
+            <button onclick="requestPhoneConsent()" style="width:100%; padding: 8px; background: #00d4ff; color: black; border: none; border-radius: 5px; cursor: pointer; margin-top: 5px;">
+                Request Consent
+            </button>
+            <div id="phoneStatus" style="font-size: 11px; margin-top: 8px; color: #888;"></div>
+        </div>
+        
+        <!-- Social Media Tab -->
+        <div id="socialTab" class="tracking-tab" style="display: none;">
+            <select id="socialPlatform" style="width:100%; padding: 8px; margin: 5px 0; background: rgba(255,255,255,0.1); border: 1px solid #00d4ff; border-radius: 5px; color: white;">
+                <option value="whatsapp">WhatsApp</option>
+                <option value="telegram">Telegram</option>
+                <option value="twitter">X (Twitter)</option>
+                <option value="instagram">Instagram</option>
+            </select>
+            <input type="text" id="socialUsername" placeholder="Username/Handle" style="width:100%; padding: 8px; margin: 5px 0; background: rgba(255,255,255,0.1); border: 1px solid #00d4ff; border-radius: 5px; color: white;">
+            <div class="legal-warning" style="background: rgba(255,0,0,0.1); padding: 8px; border-radius: 5px; margin: 10px 0; font-size: 11px;">
+                ⚠️ You must obtain explicit consent from the person before tracking.<br>
+                GST only provides the infrastructure - you are responsible for legal compliance.
+            </div>
+            <button onclick="sendSocialConsentRequest()" style="width:100%; padding: 8px; background: #ffd700; color: black; border: none; border-radius: 5px; cursor: pointer;">
+                Send Consent Request
+            </button>
+        </div>
+        
+        <!-- Manage Tab -->
+        <div id="manageTab" class="tracking-tab" style="display: none;">
+            <input type="text" id="myPhone" placeholder="Your phone number" style="width:100%; padding: 8px; margin: 5px 0; background: rgba(255,255,255,0.1); border: 1px solid #00d4ff; border-radius: 5px; color: white;">
+            <button onclick="viewMyShares()" style="width:100%; padding: 8px; background: #00d4ff; color: black; border: none; border-radius: 5px; cursor: pointer; margin-top: 5px;">
+                View Who Can Track Me
+            </button>
+            <div id="sharesList" style="margin-top: 10px; font-size: 12px;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Button to open widget -->
+<button id="trackingBtn" style="
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 100;
+    background: #ffd700;
+    color: black;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 50px;
+    cursor: pointer;
+    font-weight: bold;
+    box-shadow: 0 5px 20px rgba(255,215,0,0.3);
+">
+    <i class="fas fa-shield-alt"></i> Consent Tracking
+</button>
+
+<script>
+let trackingVisible = false;
+
+function toggleSocialTracking() {
+    const widget = document.getElementById('socialTrackingWidget');
+    trackingVisible = !trackingVisible;
+    widget.style.display = trackingVisible ? 'block' : 'none';
+}
+
+function showTrackingTab(tab) {
+    document.getElementById('phoneTab').style.display = tab === 'phone' ? 'block' : 'none';
+    document.getElementById('socialTab').style.display = tab === 'social' ? 'block' : 'none';
+    document.getElementById('manageTab').style.display = tab === 'manage' ? 'block' : 'none';
+}
+
+async function requestPhoneConsent() {
+    const phoneNumber = document.getElementById('targetPhone').value;
+    const requesterName = document.getElementById('requesterName').value;
+    
+    if (!phoneNumber || !requesterName) {
+        alert('Please fill all fields');
+        return;
+    }
+    
+    try {
+        const response = await fetch('http://localhost:8015/api/tracking/request', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phoneNumber, requesterName, purpose: 'Family location sharing' })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('phoneStatus').innerHTML = `
+                ✅ Consent request sent to ${phoneNumber}<br>
+                Share this link with them: ${window.location.origin}/consent/${data.requestId}<br>
+                They must approve before tracking begins.
+            `;
+        } else {
+            document.getElementById('phoneStatus').innerHTML = '❌ Error: ' + data.error;
+        }
+    } catch (error) {
+        document.getElementById('phoneStatus').innerHTML = '❌ Service error';
+    }
+}
+
+async function sendSocialConsentRequest() {
+    const platform = document.getElementById('socialPlatform').value;
+    const username = document.getElementById('socialUsername').value;
+    
+    if (!username) {
+        alert('Please enter username');
+        return;
+    }
+    
+    alert(`Consent request prepared for ${platform} user @${username}.\n\nGST provides the infrastructure. You must obtain explicit consent through ${platform} directly.`);
+}
+
+async function viewMyShares() {
+    const phoneNumber = document.getElementById('myPhone').value;
+    
+    if (!phoneNumber) {
+        alert('Enter your phone number');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`http://localhost:8015/api/tracking/my-shares/${phoneNumber}`);
+        const data = await response.json();
+        
+        if (data.shares && data.shares.length > 0) {
+            document.getElementById('sharesList').innerHTML = data.shares.map(s => `
+                <div style="background: rgba(0,212,255,0.1); padding: 8px; margin: 5px 0; border-radius: 5px;">
+                    Shared with: ${s.sharedWith}<br>
+                    Expires: ${new Date(s.expiresAt).toLocaleString()}<br>
+                    <button onclick="revokeConsent('${s.shareId}')" style="background: #ff4444; color: white; border: none; padding: 3px 10px; border-radius: 3px; cursor: pointer;">Revoke</button>
+                </div>
+            `).join('');
+        } else {
+            document.getElementById('sharesList').innerHTML = '<div style="color: #888;">No active shares</div>';
+        }
+    } catch (error) {
+        document.getElementById('sharesList').innerHTML = 'Error loading shares';
+    }
+}
+
+async function revokeConsent(shareId) {
+    const response = await fetch(`http://localhost:8015/api/tracking/revoke/${shareId}`, {
+        method: 'DELETE'
+    });
+    const data = await response.json();
+    alert(data.message);
+    viewMyShares();
+}
+
+document.getElementById('trackingBtn').onclick = toggleSocialTracking;
 </script></body>
 </html>
 <!-- AI Dashboard Section - Add before closing body -->
@@ -1994,6 +2364,7 @@ setTimeout(() => {
     dashboardBtn.onclick = showAIDashboard;
     document.body.appendChild(dashboardBtn);
 </script>
+
 
 
 
