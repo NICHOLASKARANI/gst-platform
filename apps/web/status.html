@@ -1,0 +1,58 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GST Platform Status</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0a0a1a, #1a1a3a);
+            color: white;
+            min-height: 100vh;
+        }
+        .container { max-width: 800px; margin: 0 auto; text-align: center; }
+        h1 { color: #00d4ff; }
+        .service-list {
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .service-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .status-up { color: #00ff00; }
+        .status-down { color: #ff4444; }
+        .back-btn {
+            display: inline-block;
+            background: #00d4ff;
+            color: black;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fas fa-chart-line"></i> GST Platform Status</h1>
+        <div class="service-list" id="serviceStatus">
+            <div class="service-item"><span>🛰️ Satellite Service</span><span class="status-up">● Operational</span></div>
+            <div class="service-item"><span>🌤️ Weather AI</span><span class="status-up">● Operational</span></div>
+            <div class="service-item"><span>🔐 Auth Service</span><span class="status-up">● Operational</span></div>
+            <div class="service-item"><span>💰 Payment Service</span><span class="status-up">● Operational</span></div>
+            <div class="service-item"><span>🌕 Moon Tracking</span><span class="status-up">● Operational</span></div>
+            <div class="service-item"><span>🤖 AI Assistant</span><span class="status-up">● Operational</span></div>
+        </div>
+        <a href="/" class="back-btn"><i class="fas fa-arrow-left"></i> Back to Map</a>
+    </div>
+</body>
+</html>

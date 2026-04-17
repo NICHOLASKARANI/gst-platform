@@ -141,7 +141,18 @@
         }
     </style>
 </head>
-<body>
+<body><!-- Navigation Menu -->
+<div style="position: absolute; top: 20px; right: 20px; z-index: 10; display: flex; gap: 10px;">
+    <a href="/status.html" style="background: rgba(0,212,255,0.2); color: white; padding: 8px 15px; border-radius: 8px; text-decoration: none; font-size: 12px;">
+        <i class="fas fa-chart-line"></i> Status
+    </a>
+    <a href="/admin.html" style="background: rgba(255,215,0,0.2); color: white; padding: 8px 15px; border-radius: 8px; text-decoration: none; font-size: 12px;">
+        <i class="fas fa-shield-alt"></i> Admin
+    </a>
+    <a href="/enterprise-analytics.html" style="background: rgba(0,212,255,0.2); color: white; padding: 8px 15px; border-radius: 8px; text-decoration: none; font-size: 12px;">
+        <i class="fas fa-chart-pie"></i> Analytics
+    </a>
+</div>
     <div id="cesiumContainer"></div>
     
     <!-- Main Overlay -->
@@ -2364,6 +2375,8 @@ document.getElementById('trackingBtn').onclick = toggleSocialTracking;
     dashboardBtn.onclick = showAIDashboard;
     document.body.appendChild(dashboardBtn);
 </script>
+
+
 
 
 

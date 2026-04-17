@@ -2,14 +2,70 @@
   "version": 2,
   "builds": [
     {
+      "src": "apps/web/**/*.html",
+      "use": "@vercel/static"
+    },
+    {
       "src": "apps/web/**",
       "use": "@vercel/static"
     }
   ],
   "routes": [
     {
+      "src": "/admin",
+      "dest": "/apps/web/admin.html"
+    },
+    {
+      "src": "/admin.html",
+      "dest": "/apps/web/admin.html"
+    },
+    {
+      "src": "/status",
+      "dest": "/apps/web/status.html"
+    },
+    {
+      "src": "/status.html",
+      "dest": "/apps/web/status.html"
+    },
+    {
+      "src": "/analytics",
+      "dest": "/apps/web/enterprise-analytics.html"
+    },
+    {
+      "src": "/enterprise-analytics.html",
+      "dest": "/apps/web/enterprise-analytics.html"
+    },
+    {
+      "src": "/gov-intel",
+      "dest": "/apps/web/gov-intel.html"
+    },
+    {
+      "src": "/gov-intel.html",
+      "dest": "/apps/web/gov-intel.html"
+    },
+    {
+      "src": "/worldwide-intel",
+      "dest": "/apps/web/worldwide-intel.html"
+    },
+    {
+      "src": "/worldwide-intel.html",
+      "dest": "/apps/web/worldwide-intel.html"
+    },
+    {
+      "src": "/legal",
+      "dest": "/apps/web/legal.html"
+    },
+    {
+      "src": "/legal.html",
+      "dest": "/apps/web/legal.html"
+    },
+    {
+      "src": "/test",
+      "dest": "/apps/web/test.html"
+    },
+    {
       "src": "/(.*)",
-      "dest": "apps/web/index.html"
+      "dest": "/apps/web/index.html"
     }
   ]
 }
